@@ -23,6 +23,10 @@ public class UserService {
             throw new RuntimeException("Email already exists");
         }
 
+        if (usersRepository.existsByUsername(request.getUsername())) {
+            throw new RuntimeException("Username already exists");
+        }
+
         Users user = UserMapper.toEntity(request);
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         Users savedUser = usersRepository.save(user);
@@ -60,7 +64,7 @@ public class UserService {
         return UserMapper.toResponse(updatedUser);
     }
 
-    public void changePassword(Long id, String oldPassword, String newPassword) {
+    public UserResponse changePassword(Long id, String oldPassword, String newPassword) {
         Users user = usersRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
@@ -68,7 +72,9 @@ public class UserService {
         }
 
         user.setPassword(passwordEncoder.encode(newPassword));
-        usersRepository.save(user);
+        Users updatedUser = usersRepository.save(user);
+
+        return UserMapper.toResponse(updatedUser);
     }
 
     public void deleteUserById(Long id) {
