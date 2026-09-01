@@ -22,13 +22,7 @@ public class ProductService {
             throw new RuntimeException("SKU already exists");
         }
 
-        Product product = new Product();
-
-        product.setProductName(request.getProductName());
-        product.setSku(request.getSku());
-        product.setPrice(request.getPrice());
-        product.setDescription(request.getDescription());
-
+        Product product = ProductMapper.toEntity(request);
         Product savedProduct = productRepository.save(product);
         return ProductMapper.toResponse(savedProduct);
     }
@@ -45,27 +39,21 @@ public class ProductService {
         return ProductMapper.toResponse(product);
     }
 
-    public List<Product> listProducts() {
-        return productRepository.findAll();
+    public List<ProductResponse> listProducts() {
+        return productRepository.findAll()
+                .stream()
+                .map(ProductMapper::toResponse)
+                .toList();
     }
 
-    public Product updateProduct(Long productId, UpdateProductRequest request) {
+    public ProductResponse updateProduct(Long productId, UpdateProductRequest request) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new RuntimeException("Product not found"));
 
-        if (request.getProductName() != null) {
-            product.setProductName(request.getProductName());
-        }
+        ProductMapper.updateEntity(product, request);
 
-        if (request.getPrice() != null) {
-            product.setPrice(request.getPrice());
-        }
-
-        if (request.getDescription() != null) {
-            product.setDescription(request.getDescription());
-        }
-
-        return productRepository.save(product);
+        Product savedProduct = productRepository.save(product);
+        return ProductMapper.toResponse(savedProduct);
     }
 
     public void deleteProduct(Long productId) {

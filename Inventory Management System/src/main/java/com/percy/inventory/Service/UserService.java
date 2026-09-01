@@ -56,9 +56,7 @@ public class UserService {
     public UserResponse updateUserProfile(Long id, UpdateUserProfileRequest request) {
         Users user = usersRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        user.setUsername(request.getUsername());
-        user.setFullName(request.getFullName());
-        user.setEmail(request.getEmail());
+        UserMapper.updateEntity(user, request);
         Users updatedUser = usersRepository.save(user);
 
         return UserMapper.toResponse(updatedUser);
