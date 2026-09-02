@@ -1,12 +1,12 @@
 package com.percy.inventory.Vendor;
 
 import com.percy.inventory.Vendor.dto.CreateVendorRequest;
+import com.percy.inventory.Vendor.dto.UpdateVendorRequest;
 import com.percy.inventory.Vendor.dto.VendorResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/vendors")
@@ -16,5 +16,30 @@ public class VendorController {
     @PostMapping
     public VendorResponse createVendor(@RequestBody CreateVendorRequest request) {
         return vendorService.createVendor(request);
+    }
+
+    @GetMapping("/id")
+    public VendorResponse getVendorById(@RequestParam Long id) {
+        return vendorService.getVendorById(id);
+    }
+
+    @GetMapping("/name/{name}")
+    public  VendorResponse getVendorByName(@PathVariable String name){
+        return vendorService.getVendorByName(name);
+    }
+
+    @GetMapping
+    public List<VendorResponse> getVendors(){
+        return vendorService.getAllVendors();
+    }
+
+    @PatchMapping("/{id}")
+    public VendorResponse updateVendor(@PathVariable Long id, @RequestBody UpdateVendorRequest request){
+        return vendorService.updateVendorById(id, request);
+    }
+
+    @DeleteMapping("/{id}")
+    public void deleteVendorById(@RequestParam Long id){
+        vendorService.deleteVendorById(id);
     }
 }
