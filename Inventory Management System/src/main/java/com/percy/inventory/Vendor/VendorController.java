@@ -19,7 +19,7 @@ public class VendorController {
     }
 
     @GetMapping("/id")
-    public VendorResponse getVendorById(@RequestParam Long id) {
+    public VendorResponse getVendorById(@PathVariable Long id) {
         return vendorService.getVendorById(id);
     }
 
@@ -39,7 +39,7 @@ public class VendorController {
     }
 
     @DeleteMapping("/{id}")
-    public void deleteVendorById(@RequestParam Long id){
+    public void deleteVendorById(@PathVariable Long id){
         vendorService.deleteVendorById(id);
     }
 }
