@@ -13,7 +13,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class VendorController {
     private final VendorService vendorService;
-    @PostMapping
+    @PostMapping 
     public VendorResponse createVendor(@RequestBody CreateVendorRequest request) {
         return vendorService.createVendor(request);
     }
