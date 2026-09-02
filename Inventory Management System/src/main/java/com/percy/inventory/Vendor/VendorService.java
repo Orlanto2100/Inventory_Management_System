@@ -6,6 +6,8 @@ import com.percy.inventory.Vendor.dto.VendorResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class VendorService {
@@ -37,6 +39,13 @@ public class VendorService {
         return VendorMapper.toResponse(vendor);
     }
 
+    public List<VendorResponse> getAllVendors() {
+        return vendorRepository.findAll()
+                .stream()
+                .map(VendorMapper::toResponse)
+                .toList();
+    }
+
     public VendorResponse updateVendorById(
             Long id,
             UpdateVendorRequest request) {
@@ -50,5 +59,12 @@ public class VendorService {
         Vendor updatedVendor = vendorRepository.save(vendor);
 
         return VendorMapper.toResponse(updatedVendor);
+    }
+
+    public void deleteVendorById(Long id){
+        if  (!vendorRepository.existsById(id)) {
+            throw new RuntimeException("Vendor with this id does not exist");
+        }
+        vendorRepository.deleteById(id);
     }
 }
