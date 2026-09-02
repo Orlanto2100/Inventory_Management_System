@@ -27,9 +27,17 @@ public final class UserMapper {
     }
 
     public static void updateEntity(Users user, UpdateUserProfileRequest request) {
-        user.setUsername(request.getUsername());
-        user.setFullName(request.getFullName());
-        user.setEmail(request.getEmail());
+        if (request.getUsername() != null) {
+            user.setUsername(request.getUsername());
+        }
+
+        if (request.getFullName() != null) {
+            user.setFullName(request.getFullName());
+        }
+
+        if (request.getEmail() != null) {
+            user.setEmail(request.getEmail());
+        }
     }
 
 }
