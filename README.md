@@ -1,4 +1,4 @@
-# Inventory Management System
+# Inventory System
 
 A backend inventory system built as a modular monolith using Java and Spring Boot, with PostgreSQL as the database.
 
@@ -51,26 +51,34 @@ The system separates the **current inventory state** from **stock movement histo
 * PostgreSQL
 * Docker *(optional)*
 
-###Database
+### Database
 
 Create a PostgreSQL database named:
 
+```text
 inventory_db
+```
 
-Configure the database connection in application.properties:
+Configure the database connection in `application.properties`:
 
+```properties
 spring.datasource.url=jdbc:postgresql://localhost:5432/inventory_db
 spring.datasource.username=your_username
 spring.datasource.password=your_password
+```
 
 The application currently uses Hibernate to create the database schema from the JPA entities when the application starts.
 
-Run the Application
+### Run the Application
 
 Using Maven:
 
+```bash
 ./mvnw spring-boot:run
+```
 
 The application runs on:
 
+```text
 http://localhost:8080
+```
