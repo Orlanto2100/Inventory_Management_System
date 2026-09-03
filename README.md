@@ -11,7 +11,6 @@ A backend inventory system built as a modular monolith using Java and Spring Boo
 | Spring Data JPA | Data persistence                |
 | PostgreSQL      | Database                        |
 | Maven           | Build and dependency management |
-| Docker          | Containerization                |
 
 ## Architecture
 
