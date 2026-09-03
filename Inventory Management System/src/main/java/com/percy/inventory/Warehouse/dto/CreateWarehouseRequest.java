@@ -1,4 +1,4 @@
-package com.percy.inventory.Warehouse;
+package com.percy.inventory.Warehouse.dto;
 
 import lombok.Getter;
 import lombok.Setter;

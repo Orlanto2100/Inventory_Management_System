@@ -1,12 +1,11 @@
 package com.percy.inventory.Warehouse;
 
-import com.percy.inventory.Location.Location;
 import com.percy.inventory.BaseEntity;
+import com.percy.inventory.Location.Location;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -15,28 +14,33 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Warehouse extends BaseEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long WarehouseId;
+    private Long warehouseId;
 
-    @Column(unique = true)
+    @Column(nullable = false, unique = true, length = 50)
     private String code;
 
-    @Column(length = 100)
+    @Column(nullable = false, length = 100)
     private String name;
 
     @Column(length = 250)
     private String address;
 
-    @Column(length = 20)
+    @Column(length = 100)
     private String city;
 
     @Column(length = 20)
     private String phoneNumber;
 
-    @Column(length = 20)
+    @Column(length = 254)
     private String email;
 
-    @OneToMany(mappedBy = "warehouse")
-    List<Location> locations;
+    @OneToMany(
+            mappedBy = "warehouse",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private List<Location> locations = new ArrayList<>();
 }
