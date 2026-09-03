@@ -51,34 +51,26 @@ The system separates the **current inventory state** from **stock movement histo
 * PostgreSQL
 * Docker *(optional)*
 
-### Database
+###Database
 
-Create a PostgreSQL database for the application.
+Create a PostgreSQL database named:
 
-```text
 inventory_db
-```
 
-Configure the database connection in the Spring Boot application configuration.
+Configure the database connection in application.properties:
 
-```properties
 spring.datasource.url=jdbc:postgresql://localhost:5432/inventory_db
 spring.datasource.username=your_username
 spring.datasource.password=your_password
-```
 
-Do not commit database credentials or other sensitive information.
+The application currently uses Hibernate to create the database schema from the JPA entities when the application starts.
 
-### Run the Application
+Run the Application
 
 Using Maven:
 
-```bash
 ./mvnw spring-boot:run
-```
 
 The application runs on:
 
-```text
 http://localhost:8080
-```
