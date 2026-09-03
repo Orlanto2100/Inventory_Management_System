@@ -1,4 +1,4 @@
-# Inventory System
+# Inventory Management System
 
 A backend inventory system built as a modular monolith using Java and Spring Boot, with PostgreSQL as the database.
 
@@ -17,7 +17,7 @@ A backend inventory system built as a modular monolith using Java and Spring Boo
 
 The application follows a **modular monolith** architecture.
 
-Each business domain is organized into its own module within the application, while all modules run as a single deployable unit.
+Each business domain is organized into its own module within the application.
 
 ## Domains
 
