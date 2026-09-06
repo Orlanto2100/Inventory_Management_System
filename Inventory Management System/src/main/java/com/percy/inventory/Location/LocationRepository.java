@@ -1,6 +1,9 @@
 package com.percy.inventory.Location;
 
-import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface LocationRepository extends CrudRepository<Location, Long> {
+import java.util.Optional;
+
+public interface LocationRepository extends JpaRepository<Location, Long> {
+    Optional<Location> findByCode(String code);
 }
