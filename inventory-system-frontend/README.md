@@ -1,73 +1,206 @@
-# React + TypeScript + Vite
+# Inventory System — Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+The frontend of the Inventory System, built with **React, TypeScript, and Vite**.
 
-Currently, two official plugins are available:
+It provides the user interface for interacting with the Spring Boot backend through REST APIs.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Tech Stack
 
-## React Compiler
+| Technology | Purpose                           |
+| ---------- | --------------------------------- |
+| React      | UI framework                      |
+| TypeScript | Type-safe JavaScript              |
+| Vite       | Development server and build tool |
+| Fetch API  | Backend API communication         |
+| ESLint     | Code linting                      |
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Features
 
-## Expanding the ESLint configuration
+The frontend is organized around the system's business domains:
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+* Authentication
+* Dashboard
+* Users
+* Products
+* Vendors
+* Customers
+* Warehouses
+* Locations
+* Inventory
+* Stock Movements
+* Purchase Orders
+* Sales Orders
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Project Structure
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```text
+src/
+├── api/
+│   ├── client.ts
+│   └── productApi.ts
+│
+├── app/
+│   ├── App.tsx
+│   ├── App.css
+│   ├── index.css
+│   └── main.tsx
+│
+├── assets/
+│
+└── features/
+    ├── auth/
+    ├── customers/
+    ├── dashboard/
+    ├── inventory/
+    ├── locations/
+    ├── products/
+    ├── purchase-orders/
+    ├── sales-orders/
+    ├── stock-movements/
+    ├── users/
+    ├── vendors/
+    └── warehouses/
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### API
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+The `api/` directory contains the code responsible for communicating with the backend.
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```text
+api/
+├── client.ts
+└── productApi.ts
 ```
+
+`client.ts` provides the common API request function, while feature-specific API files contain requests for individual resources.
+
+### Features
+
+The `features/` directory organizes the frontend by business domain.
+
+Each feature contains the UI related to that domain.
+
+For example:
+
+```text
+features/
+└── products/
+    └── pages/
+        └── ProductPage.tsx
+```
+
+This keeps related frontend code grouped together instead of putting all pages into one large directory.
+
+## Backend Connection
+
+The frontend communicates with the Spring Boot backend through REST APIs.
+
+By default, API requests are sent to:
+
+```text
+http://localhost:8080/api
+```
+
+The API base URL can be configured using:
+
+```text
+VITE_API_BASE_URL
+```
+
+For example:
+
+```env
+VITE_API_BASE_URL=http://localhost:8080/api
+```
+
+## Getting Started
+
+### Prerequisites
+
+Make sure the following are installed:
+
+* Node.js
+* npm
+
+### Install Dependencies
+
+From the frontend directory:
+
+```bash
+npm install
+```
+
+### Start the Development Server
+
+```bash
+npm run dev
+```
+
+Vite will display the local development URL in the terminal, normally:
+
+```text
+http://localhost:5173
+```
+
+Open that address in your browser.
+
+## Running with the Backend
+
+The frontend and backend run as separate development servers.
+
+Start the backend in one terminal:
+
+```bash
+cd inventory-system-backend
+./mvnw spring-boot:run
+```
+
+Then start the frontend in another terminal:
+
+```bash
+cd inventory-system-frontend
+npm run dev
+```
+
+The development setup is:
+
+```text
+React + TypeScript
+localhost:5173
+        │
+        │ REST API
+        ▼
+Spring Boot
+localhost:8080
+        │
+        ▼
+PostgreSQL
+```
+
+Both the frontend and backend need to be running for the complete application to function.
+
+## Available Scripts
+
+```bash
+npm run dev
+```
+
+Starts the Vite development server.
+
+```bash
+npm run build
+```
+
+Builds the frontend for production.
+
+```bash
+npm run lint
+```
+
+Runs ESLint to check the code.
+
+```bash
+npm run preview
+```
+
+Previews the production build locally.
