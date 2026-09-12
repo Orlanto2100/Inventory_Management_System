@@ -1,95 +1,54 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import {
+  Alert,
   Button,
   Card,
   Col,
-  Form,
-  Input,
   Modal,
   Row,
-  Space,
-  Table,
   Typography,
 } from 'antd'
 import {
-  DeleteOutlined,
-  EditOutlined,
   PlusOutlined,
+  ReloadOutlined,
   SearchOutlined,
 } from '@ant-design/icons'
-import type { ColumnsType } from 'antd/es/table'
+
+import type { CustomerResponse } from '../../../api/customerApi'
+import CustomerTable from '../components/CustomerTable'
+import CustomerModal, {
+  type CustomerFormValues,
+} from '../components/CustomerModal'
+import { useCustomers } from '../hooks/useCustomers'
 
 const { Title, Text } = Typography
 
-type Customer = {
-  id: number
-  name: string
-  phone: string
-  email: string
-  address: string
-}
-
-type CustomerFormValues = {
-  name: string
-  phone: string
-  email: string
-  address: string
-}
-
-const initialCustomers: Customer[] = [
-  {
-    id: 1,
-    name: 'John Doe',
-    phone: '09123456789',
-    email: 'john@example.com',
-    address: 'Yangon',
-  },
-  {
-    id: 2,
-    name: 'ABC Store',
-    phone: '09876543210',
-    email: 'abcstore@example.com',
-    address: 'Mandalay',
-  },
-  {
-    id: 3,
-    name: 'Michael Trading',
-    phone: '09234567890',
-    email: 'michael@example.com',
-    address: 'Naypyidaw',
-  },
-  {
-    id: 4,
-    name: 'Golden Food',
-    phone: '09555555555',
-    email: '',
-    address: 'Bago',
-  },
-]
-
 export default function CustomerPage() {
-  const [customers, setCustomers] =
-    useState<Customer[]>(initialCustomers)
+  const {
+    customers,
+    loading,
+    submitting,
+    deletingId,
+    error,
+    loadCustomers,
+    create,
+    update,
+    remove,
+  } = useCustomers()
 
   const [searchText, setSearchText] = useState('')
-
   const [modalOpen, setModalOpen] = useState(false)
-
   const [editingCustomer, setEditingCustomer] =
-    useState<Customer | null>(null)
+    useState<CustomerResponse | null>(null)
 
-  const [form] =
-    Form.useForm<CustomerFormValues>()
+  const filteredCustomers = useMemo(() => {
+    const search = searchText.toLowerCase().trim()
 
-  const filteredCustomers =
-    customers.filter((customer) => {
-      const search =
-        searchText.toLowerCase().trim()
+    if (!search) {
+      return customers
+    }
 
-      if (!search) {
-        return true
-      }
-
+    return customers.filter((customer) => {
       return (
         customer.name
           .toLowerCase()
@@ -97,170 +56,85 @@ export default function CustomerPage() {
         customer.phone
           .toLowerCase()
           .includes(search) ||
-        customer.email
+        (customer.email ?? '')
           .toLowerCase()
           .includes(search) ||
-        customer.address
+        (customer.address ?? '')
           .toLowerCase()
           .includes(search)
       )
     })
+  }, [customers, searchText])
 
   const openCreateModal = () => {
     setEditingCustomer(null)
-
-    form.resetFields()
-
     setModalOpen(true)
   }
 
   const openEditModal = (
-    customer: Customer,
+    customer: CustomerResponse,
   ) => {
     setEditingCustomer(customer)
-
-    form.setFieldsValue({
-      name: customer.name,
-      phone: customer.phone,
-      email: customer.email,
-      address: customer.address,
-    })
-
     setModalOpen(true)
   }
 
   const closeModal = () => {
-    setModalOpen(false)
-    setEditingCustomer(null)
-    form.resetFields()
-  }
-
-  const handleSubmit = async () => {
-    const values =
-      await form.validateFields()
-
-    if (editingCustomer) {
-      setCustomers(
-        (currentCustomers) =>
-          currentCustomers.map(
-            (customer) =>
-              customer.id ===
-              editingCustomer.id
-                ? {
-                    ...customer,
-                    ...values,
-                  }
-                : customer,
-          ),
-      )
-    } else {
-      const newCustomer: Customer = {
-        id: Date.now(),
-        ...values,
-      }
-
-      setCustomers(
-        (currentCustomers) => [
-          ...currentCustomers,
-          newCustomer,
-        ],
-      )
+    if (submitting) {
+      return
     }
 
-    closeModal()
+    setModalOpen(false)
+    setEditingCustomer(null)
+  }
+
+  const handleSubmit = async (
+    values: CustomerFormValues,
+  ) => {
+    let success: boolean
+
+    if (editingCustomer) {
+      success = await update(
+        editingCustomer.customerId,
+        {
+          name: values.name,
+          phone: values.phone,
+          email: values.email,
+          address: values.address,
+        },
+      )
+    } else {
+      success = await create(values)
+    }
+
+    if (success) {
+      closeModal()
+    }
   }
 
   const handleDelete = (
-    customer: Customer,
+    customer: CustomerResponse,
   ) => {
     Modal.confirm({
       title: 'Delete customer?',
       content: (
         <>
           Are you sure you want to delete{' '}
-          <strong>
-            {customer.name}
-          </strong>
-          ?
+          <strong>{customer.name}</strong>?
         </>
       ),
       okText: 'Delete',
       okType: 'danger',
       cancelText: 'Cancel',
-      onOk: () => {
-        setCustomers(
-          (currentCustomers) =>
-            currentCustomers.filter(
-              (item) =>
-                item.id !==
-                customer.id,
-            ),
-        )
+
+      onOk: async () => {
+        await remove(customer.customerId)
       },
     })
   }
 
-  const columns: ColumnsType<Customer> = [
-    {
-      title: 'Customer',
-      dataIndex: 'name',
-      key: 'name',
-      sorter: (a, b) =>
-        a.name.localeCompare(b.name),
-      render: (name: string) => (
-        <Text strong>
-          {name}
-        </Text>
-      ),
-    },
-    {
-      title: 'Phone',
-      dataIndex: 'phone',
-      key: 'phone',
-    },
-    {
-      title: 'Email',
-      dataIndex: 'email',
-      key: 'email',
-      render: (email: string) =>
-        email || '—',
-    },
-    {
-      title: 'Address',
-      dataIndex: 'address',
-      key: 'address',
-    },
-    {
-      title: 'Actions',
-      key: 'actions',
-      align: 'right',
-      fixed: 'right',
-      render: (_, customer) => (
-        <Space size="small">
-          <Button
-            type="text"
-            icon={<EditOutlined />}
-            onClick={() =>
-              openEditModal(customer)
-            }
-          />
-
-          <Button
-            type="text"
-            danger
-            icon={<DeleteOutlined />}
-            onClick={() =>
-              handleDelete(customer)
-            }
-          />
-        </Space>
-      ),
-    },
-  ]
-
   return (
     <div>
-      {/* Page heading */}
+      {/* Page header */}
       <div>
         <Title
           level={2}
@@ -273,12 +147,32 @@ export default function CustomerPage() {
         </Title>
 
         <Text type="secondary">
-          Manage customers in your
-          inventory system.
+          Manage customers in your inventory system.
         </Text>
       </div>
 
-      {/* Customer table */}
+      {/* Error message */}
+      {error && (
+        <Alert
+          type="error"
+          showIcon
+          message="Failed to load customers"
+          description={error}
+          action={
+            <Button
+              size="small"
+              onClick={loadCustomers}
+            >
+              Retry
+            </Button>
+          }
+          style={{
+            marginTop: 24,
+          }}
+        />
+      )}
+
+      {/* Customer table card */}
       <Card
         style={{
           marginTop: 24,
@@ -294,26 +188,70 @@ export default function CustomerPage() {
             marginBottom: 20,
           }}
         >
-          <Col
-            xs={24}
-            lg={18}
-          >
-            <Input
-              placeholder="Search customers..."
-              prefix={
-                <SearchOutlined />
-              }
-              value={searchText}
-              onChange={(event) =>
-                setSearchText(
-                  event.target.value,
-                )
-              }
-              allowClear
-              style={{
-                maxWidth: 400,
-              }}
-            />
+          <Col xs={24} lg={18}>
+            <Row gutter={[8, 8]}>
+              <Col
+                xs={24}
+                sm={16}
+                md={14}
+                lg={12}
+              >
+                <div
+                  style={{
+                    position: 'relative',
+                  }}
+                >
+                  <SearchOutlined
+                    style={{
+                      position: 'absolute',
+                      left: 11,
+                      top: '50%',
+                      transform:
+                        'translateY(-50%)',
+                      zIndex: 1,
+                    }}
+                  />
+
+                  <input
+                    value={searchText}
+                    onChange={(event) =>
+                      setSearchText(
+                        event.target.value,
+                      )
+                    }
+                    placeholder="Search customers..."
+                    style={{
+                      width: '100%',
+                      height: 32,
+                      paddingLeft: 32,
+                      paddingRight: 8,
+                      border:
+                        '1px solid #d9d9d9',
+                      borderRadius: 6,
+                      outline: 'none',
+                    }}
+                  />
+                </div>
+              </Col>
+
+              <Col
+                xs={24}
+                sm={8}
+                md={6}
+                lg={4}
+              >
+                <Button
+                  icon={<ReloadOutlined />}
+                  onClick={loadCustomers}
+                  loading={loading}
+                  style={{
+                    width: '100%',
+                  }}
+                >
+                  Refresh
+                </Button>
+              </Col>
+            </Row>
           </Col>
 
           <Col
@@ -326,124 +264,32 @@ export default function CustomerPage() {
             <Button
               type="primary"
               icon={<PlusOutlined />}
-              onClick={
-                openCreateModal
-              }
+              onClick={openCreateModal}
             >
               Add Customer
             </Button>
           </Col>
         </Row>
 
-        {/* Table */}
-        <Table
-          rowKey="id"
-          columns={columns}
-          dataSource={
-            filteredCustomers
-          }
-          pagination={{
-            pageSize: 10,
-            showSizeChanger: true,
-            showTotal: (total) =>
-              `Total ${total} customers`,
-          }}
-          scroll={{
-            x: 700,
-          }}
+        {/* Customer table */}
+        <CustomerTable
+          customers={filteredCustomers}
+          loading={loading}
+          deletingId={deletingId}
+          searchText={searchText}
+          onEdit={openEditModal}
+          onDelete={handleDelete}
         />
       </Card>
 
-      {/* Create / Edit modal */}
-      <Modal
-        title={
-          editingCustomer
-            ? 'Edit Customer'
-            : 'Add Customer'
-        }
+      {/* Create/Edit modal */}
+      <CustomerModal
         open={modalOpen}
+        editingCustomer={editingCustomer}
+        submitting={submitting}
         onCancel={closeModal}
-        onOk={handleSubmit}
-        okText={
-          editingCustomer
-            ? 'Update'
-            : 'Create'
-        }
-        destroyOnHidden
-      >
-        <Form
-          form={form}
-          layout="vertical"
-          style={{
-            marginTop: 24,
-          }}
-        >
-          <Form.Item
-            label="Customer Name"
-            name="name"
-            rules={[
-              {
-                required: true,
-                message:
-                  'Please enter the customer name',
-              },
-            ]}
-          >
-            <Input
-              placeholder="e.g. John Doe"
-            />
-          </Form.Item>
-
-          <Form.Item
-            label="Phone"
-            name="phone"
-            rules={[
-              {
-                required: true,
-                message:
-                  'Please enter the phone number',
-              },
-            ]}
-          >
-            <Input
-              placeholder="e.g. 09123456789"
-            />
-          </Form.Item>
-
-          <Form.Item
-            label="Email"
-            name="email"
-            rules={[
-              {
-                type: 'email',
-                message:
-                  'Please enter a valid email address',
-              },
-            ]}
-          >
-            <Input
-              placeholder="e.g. john@example.com"
-            />
-          </Form.Item>
-
-          <Form.Item
-            label="Address"
-            name="address"
-            rules={[
-              {
-                required: true,
-                message:
-                  'Please enter the address',
-              },
-            ]}
-          >
-            <Input.TextArea
-              rows={3}
-              placeholder="Enter customer address"
-            />
-          </Form.Item>
-        </Form>
-      </Modal>
+        onSubmit={handleSubmit}
+      />
     </div>
   )
 }
