@@ -1,82 +1,45 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import {
   Alert,
   Button,
   Card,
   Col,
-  Empty,
-  Form,
-  Input,
-  InputNumber,
   Modal,
   Row,
-  Space,
-  Table,
   Typography,
-  message,
 } from 'antd'
 import {
-  DeleteOutlined,
-  EditOutlined,
   PlusOutlined,
   ReloadOutlined,
   SearchOutlined,
 } from '@ant-design/icons'
-import type { ColumnsType } from 'antd/es/table'
 
-import {
-  createProduct,
-  deleteProduct,
-  getProducts,
-  updateProduct,
-  type ProductResponse,
-} from '../../../api/productApi'
+import type { ProductResponse } from '../../../api/productApi'
+import ProductTable from '../components/ProductTable'
+import ProductModal, {
+  type ProductFormValues,
+} from '../components/ProductModal'
+import { useProducts } from '../hooks/useProducts'
 
 const { Title, Text } = Typography
 
-type ProductFormValues = {
-  productName: string
-  sku: string
-  price: number
-  description?: string
-}
-
 export default function ProductPage() {
-  const [products, setProducts] = useState<ProductResponse[]>([])
-  const [loading, setLoading] = useState(false)
-  const [submitting, setSubmitting] = useState(false)
-  const [deletingId, setDeletingId] = useState<number | null>(null)
-  const [error, setError] = useState<string | null>(null)
+  const {
+    products,
+    loading,
+    submitting,
+    deletingId,
+    error,
+    loadProducts,
+    create,
+    update,
+    remove,
+  } = useProducts()
+
   const [searchText, setSearchText] = useState('')
   const [modalOpen, setModalOpen] = useState(false)
   const [editingProduct, setEditingProduct] =
     useState<ProductResponse | null>(null)
-
-  const [form] = Form.useForm<ProductFormValues>()
-
-  const loadProducts = async () => {
-    try {
-      setLoading(true)
-      setError(null)
-
-      const data = await getProducts()
-
-      setProducts(data)
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : 'Failed to load products.'
-
-      setError(errorMessage)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    loadProducts()
-  }, [])
 
   const filteredProducts = useMemo(() => {
     const search = searchText.toLowerCase().trim()
@@ -87,35 +50,26 @@ export default function ProductPage() {
 
     return products.filter((product) => {
       return (
-        product.productName.toLowerCase().includes(search) ||
-        product.sku.toLowerCase().includes(search) ||
-        (product.description ?? '').toLowerCase().includes(search)
+        product.productName
+          .toLowerCase()
+          .includes(search) ||
+        product.sku
+          .toLowerCase()
+          .includes(search) ||
+        (product.description ?? '')
+          .toLowerCase()
+          .includes(search)
       )
     })
   }, [products, searchText])
 
   const openCreateModal = () => {
     setEditingProduct(null)
-
-    form.resetFields()
-
-    form.setFieldsValue({
-      price: 0,
-    })
-
     setModalOpen(true)
   }
 
   const openEditModal = (product: ProductResponse) => {
     setEditingProduct(product)
-
-    form.setFieldsValue({
-      productName: product.productName,
-      sku: product.sku,
-      price: product.price,
-      description: product.description ?? undefined,
-    })
-
     setModalOpen(true)
   }
 
@@ -126,76 +80,34 @@ export default function ProductPage() {
 
     setModalOpen(false)
     setEditingProduct(null)
-    form.resetFields()
   }
 
-  const handleSubmit = async () => {
-    try {
-      const values = await form.validateFields()
+  const handleSubmit = async (
+    values: ProductFormValues,
+  ) => {
+    let success: boolean
 
-      setSubmitting(true)
-
-      if (editingProduct) {
-        const updatedProduct = await updateProduct(
-          editingProduct.productId,
-          {
-            productName: values.productName,
-            price: values.price,
-            description: values.description,
-          },
-        )
-
-        setProducts((currentProducts) =>
-          currentProducts.map((product) =>
-            product.productId === editingProduct.productId
-              ? updatedProduct
-              : product,
-          ),
-        )
-
-        message.success('Product updated successfully.')
-      } else {
-        const newProduct = await createProduct({
+    if (editingProduct) {
+      success = await update(
+        editingProduct.productId,
+        {
           productName: values.productName,
-          sku: values.sku,
           price: values.price,
           description: values.description,
-        })
+        },
+      )
+    } else {
+      success = await create(values)
+    }
 
-        setProducts((currentProducts) => [
-          ...currentProducts,
-          newProduct,
-        ])
-
-        message.success('Product created successfully.')
-      }
-
-      setModalOpen(false)
-      setEditingProduct(null)
-      form.resetFields()
-    } catch (error) {
-      if (
-        error &&
-        typeof error === 'object' &&
-        'errorFields' in error
-      ) {
-        return
-      }
-
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : editingProduct
-            ? 'Failed to update product.'
-            : 'Failed to create product.'
-
-      message.error(errorMessage)
-    } finally {
-      setSubmitting(false)
+    if (success) {
+      closeModal()
     }
   }
 
-  const handleDelete = (product: ProductResponse) => {
+  const handleDelete = (
+    product: ProductResponse,
+  ) => {
     Modal.confirm({
       title: 'Delete product?',
       content: (
@@ -209,101 +121,10 @@ export default function ProductPage() {
       cancelText: 'Cancel',
 
       onOk: async () => {
-        try {
-          setDeletingId(product.productId)
-
-          await deleteProduct(product.productId)
-
-          setProducts((currentProducts) =>
-            currentProducts.filter(
-              (item) => item.productId !== product.productId,
-            ),
-          )
-
-          message.success('Product deleted successfully.')
-        } catch (error) {
-          const errorMessage =
-            error instanceof Error
-              ? error.message
-              : 'Failed to delete product.'
-
-          message.error(errorMessage)
-
-          throw error
-        } finally {
-          setDeletingId(null)
-        }
+        await remove(product.productId)
       },
     })
   }
-
-  const columns: ColumnsType<ProductResponse> = [
-    {
-      title: 'Product',
-      dataIndex: 'productName',
-      key: 'productName',
-      sorter: (a, b) =>
-        a.productName.localeCompare(b.productName),
-      render: (productName: string) => (
-        <Text strong>{productName}</Text>
-      ),
-    },
-
-    {
-      title: 'SKU',
-      dataIndex: 'sku',
-      key: 'sku',
-    },
-
-    {
-      title: 'Price',
-      dataIndex: 'price',
-      key: 'price',
-      align: 'right',
-      sorter: (a, b) => a.price - b.price,
-      render: (price: number) =>
-        `${price.toLocaleString()} MMK`,
-    },
-
-    {
-      title: 'Description',
-      dataIndex: 'description',
-      key: 'description',
-      ellipsis: true,
-      render: (description: string | null) =>
-        description || (
-          <Text type="secondary">
-            No description
-          </Text>
-        ),
-    },
-
-    {
-      title: 'Actions',
-      key: 'actions',
-      align: 'right',
-      fixed: 'right',
-
-      render: (_, product) => (
-        <Space size="small">
-          <Button
-            type="text"
-            icon={<EditOutlined />}
-            disabled={deletingId === product.productId}
-            onClick={() => openEditModal(product)}
-          />
-
-          <Button
-            type="text"
-            danger
-            icon={<DeleteOutlined />}
-            loading={deletingId === product.productId}
-            onClick={() => handleDelete(product)}
-          />
-        </Space>
-      ),
-    },
-  ]
 
   return (
     <div>
@@ -364,15 +185,34 @@ export default function ProductPage() {
           <Col xs={24} lg={18}>
             <Row gutter={[8, 8]}>
               <Col xs={24} sm={16} md={14} lg={12}>
-                <Input
-                  placeholder="Search products..."
-                  prefix={<SearchOutlined />}
-                  value={searchText}
-                  onChange={(event) =>
-                    setSearchText(event.target.value)
-                  }
-                  allowClear
-                />
+                <div style={{ position: 'relative' }}>
+                  <SearchOutlined
+                    style={{
+                      position: 'absolute',
+                      left: 11,
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      zIndex: 1,
+                    }}
+                  />
+
+                  <input
+                    value={searchText}
+                    onChange={(event) =>
+                      setSearchText(event.target.value)
+                    }
+                    placeholder="Search products..."
+                    style={{
+                      width: '100%',
+                      height: 32,
+                      paddingLeft: 32,
+                      paddingRight: 8,
+                      border: '1px solid #d9d9d9',
+                      borderRadius: 6,
+                      outline: 'none',
+                    }}
+                  />
+                </div>
               </Col>
 
               <Col xs={24} sm={8} md={6} lg={4}>
@@ -408,144 +248,24 @@ export default function ProductPage() {
         </Row>
 
         {/* Product table */}
-        <Table
-          rowKey="productId"
-          columns={columns}
-          dataSource={filteredProducts}
+        <ProductTable
+          products={filteredProducts}
           loading={loading}
-          pagination={{
-            pageSize: 10,
-            showSizeChanger: true,
-            showTotal: (total) =>
-              `Total ${total} products`,
-          }}
-          locale={{
-            emptyText: (
-              <Empty
-                description={
-                  searchText
-                    ? 'No products match your search.'
-                    : 'No products found.'
-                }
-              />
-            ),
-          }}
-          scroll={{ x: 800 }}
+          deletingId={deletingId}
+          searchText={searchText}
+          onEdit={openEditModal}
+          onDelete={handleDelete}
         />
       </Card>
 
       {/* Create/Edit modal */}
-      <Modal
-        title={
-          editingProduct
-            ? 'Edit Product'
-            : 'Add Product'
-        }
+      <ProductModal
         open={modalOpen}
+        editingProduct={editingProduct}
+        submitting={submitting}
         onCancel={closeModal}
-        onOk={handleSubmit}
-        okText={
-          editingProduct
-            ? 'Update'
-            : 'Create'
-        }
-        confirmLoading={submitting}
-        destroyOnHidden
-      >
-        <Form
-          form={form}
-          layout="vertical"
-          style={{
-            marginTop: 24,
-          }}
-        >
-          {/* Product name */}
-          <Form.Item
-            label="Product Name"
-            name="productName"
-            rules={[
-              {
-                required: true,
-                message:
-                  'Please enter the product name',
-              },
-              {
-                max: 100,
-                message:
-                  'Product name cannot exceed 100 characters',
-              },
-            ]}
-          >
-            <Input
-              placeholder="e.g. Cheeseburger"
-              maxLength={100}
-            />
-          </Form.Item>
-
-          {/* SKU */}
-          <Form.Item
-            label="SKU"
-            name="sku"
-            rules={[
-              {
-                required: true,
-                message: 'Please enter the SKU',
-              },
-              {
-                max: 50,
-                message:
-                  'SKU cannot exceed 50 characters',
-              },
-            ]}
-          >
-            <Input
-              placeholder="e.g. BURGER-001"
-              maxLength={50}
-              disabled={!!editingProduct}
-            />
-          </Form.Item>
-
-          {/* Price */}
-          <Form.Item
-            label="Price"
-            name="price"
-            rules={[
-              {
-                required: true,
-                message: 'Please enter the price',
-              },
-            ]}
-          >
-            <InputNumber
-              min={0}
-              style={{
-                width: '100%',
-              }}
-              placeholder="Price"
-            />
-          </Form.Item>
-
-          {/* Description */}
-          <Form.Item
-            label="Description"
-            name="description"
-            rules={[
-              {
-                max: 1000,
-                message:
-                  'Description cannot exceed 1000 characters',
-              },
-            ]}
-          >
-            <Input.TextArea
-              rows={4}
-              placeholder="Enter a product description..."
-              maxLength={1000}
-              showCount
-            />
-          </Form.Item>
-        </Form>
-      </Modal>
+        onSubmit={handleSubmit}
+      />
     </div>
   )
 }
