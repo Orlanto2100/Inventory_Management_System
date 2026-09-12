@@ -31,10 +31,7 @@ public class Customer extends BaseEntity {
     @Column(length = 250)
     private String address;
 
-    @OneToMany(
-            mappedBy = "customer",
-            fetch = FetchType.LAZY
-    )
+    @OneToMany(mappedBy = "customer", fetch = FetchType.LAZY)
     private List<SalesOrder> salesOrders = new ArrayList<>();
 
     public Customer(
