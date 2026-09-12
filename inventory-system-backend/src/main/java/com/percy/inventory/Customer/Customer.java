@@ -3,22 +3,21 @@ package com.percy.inventory.Customer;
 import com.percy.inventory.BaseEntity;
 import com.percy.inventory.SalesOrder.SalesOrder;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
+
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
 @Table(name = "customers")
+@Getter
+@NoArgsConstructor
 public class Customer extends BaseEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long CustomerId;
+    private Long id;
 
     @Column(nullable = false, length = 100)
     private String name;
@@ -32,6 +31,44 @@ public class Customer extends BaseEntity {
     @Column(length = 250)
     private String address;
 
-    @OneToMany(mappedBy = "customer", fetch = FetchType.LAZY)
-    private List<SalesOrder> salesOrders;
+    @OneToMany(
+            mappedBy = "customer",
+            fetch = FetchType.LAZY
+    )
+    private List<SalesOrder> salesOrders = new ArrayList<>();
+
+    public Customer(
+            String name,
+            String phone,
+            String email,
+            String address
+    ) {
+        this.name = name;
+        this.phone = phone;
+        this.email = email;
+        this.address = address;
+    }
+
+    public void update(
+            String name,
+            String phone,
+            String email,
+            String address
+    ) {
+        if (name != null) {
+            this.name = name;
+        }
+
+        if (phone != null) {
+            this.phone = phone;
+        }
+
+        if (email != null) {
+            this.email = email;
+        }
+
+        if (address != null) {
+            this.address = address;
+        }
+    }
 }

@@ -3,7 +3,10 @@ package com.percy.inventory.Location;
 import com.percy.inventory.Location.dto.CreateLocationRequest;
 import com.percy.inventory.Location.dto.LocationResponse;
 import com.percy.inventory.Location.dto.UpdateLocationRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -12,20 +15,27 @@ import java.util.List;
 @RequestMapping("/api/locations")
 @RequiredArgsConstructor
 public class LocationController {
+
     private final LocationService locationService;
 
     @PostMapping
-    public LocationResponse createLocation(@RequestBody CreateLocationRequest request) {
-        return locationService.createLocation(request);
+    public ResponseEntity<LocationResponse> createLocation(
+            @Valid @RequestBody CreateLocationRequest request) {
+
+        LocationResponse response = locationService.createLocation(request);
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(response);
     }
 
     @GetMapping("/{id}")
-    public LocationResponse getLocationById(@RequestParam Long id) {
+    public LocationResponse getLocationById(@PathVariable Long id) {
         return locationService.getLocationById(id);
     }
 
     @GetMapping("/code/{code}")
-    public LocationResponse getLocationByName(@PathVariable String code) {
+    public LocationResponse getLocationByCode(@PathVariable String code) {
         return locationService.getLocationByCode(code);
     }
 
@@ -35,12 +45,17 @@ public class LocationController {
     }
 
     @PatchMapping("/{id}")
-    public LocationResponse updateLocation(@PathVariable Long id, @RequestBody UpdateLocationRequest request) {
+    public LocationResponse updateLocation(
+            @PathVariable Long id,
+            @Valid @RequestBody UpdateLocationRequest request) {
+
         return locationService.updateLocation(id, request);
     }
 
     @DeleteMapping("/{id}")
-    public void deleteLocationById(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteLocationById(@PathVariable Long id) {
         locationService.deleteLocation(id);
+
+        return ResponseEntity.noContent().build();
     }
 }

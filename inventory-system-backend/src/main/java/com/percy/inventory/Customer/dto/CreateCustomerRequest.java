@@ -1,17 +1,11 @@
 package com.percy.inventory.Customer.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-public class CreateCustomerRequest {
-    private String name;
-    private String phone;
-    private String email;
-    private String address;
-}
+public record CreateCustomerRequest(
+        @NotBlank String name,
+        @NotBlank String phone,
+        @Email String email,
+        String address
+) {}
