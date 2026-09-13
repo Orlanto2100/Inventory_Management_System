@@ -1,17 +1,17 @@
 package com.percy.inventory.Vendor.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-public class CreateVendorRequest {
-    private String name;
-    private String phone;
-    private String email;
-    private String address;
-}
+public record CreateVendorRequest(
+        @NotBlank(message = "Name is required")
+        String name,
+
+        @NotBlank(message = "Phone is required")
+        String phone,
+
+        @Email(message = "Email must be valid")
+        String email,
+
+        String address
+) {}

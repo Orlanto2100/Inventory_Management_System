@@ -13,6 +13,7 @@ import InventoryPage from '../features/inventory/pages/InventoryPage'
 import PurchaseOrderPage from '../features/purchase-orders/pages/PurchaseOrderPage'
 import SalesOrderPage from '../features/sales-orders/pages/SalesOrderPage'
 import StockMovementPage from '../features/stock-movements/pages/StockMovementPage'
+import RfqPage from '../features/procurement/rfq/pages/RfqPage'
 
 export default function AppRoutes() {
   return (
@@ -46,6 +47,14 @@ export default function AppRoutes() {
         <Route
           path="/stock-movements"
           element={<StockMovementPage />}
+        />
+
+        {/* Purchasing */}
+        <Route path="/vendors" element={<VendorPage />} />
+        <Route path="/rfqs" element={<RfqPage />} />
+        <Route
+          path="/purchase-orders"
+          element={<PurchaseOrderPage />}
         />
 
         {/* Administration */}

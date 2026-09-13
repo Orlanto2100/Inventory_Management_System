@@ -22,7 +22,7 @@ public class PurchaseOrderMapper {
         return new PurchaseOrderResponse(
                 purchaseOrder.getPurchaseOrderId(),
                 purchaseOrder.getPurchaseOrderNumber(),
-                purchaseOrder.getVendor().getVendorId(),
+                purchaseOrder.getVendor().getId(),
                 purchaseOrder.getCreatedBy().getUserId(),
                 purchaseOrder.getOrderDate(),
                 purchaseOrder.getExpectedDeliveryDate(),

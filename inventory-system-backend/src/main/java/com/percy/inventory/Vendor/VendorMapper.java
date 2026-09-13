@@ -3,11 +3,14 @@ package com.percy.inventory.Vendor;
 import com.percy.inventory.Vendor.dto.CreateVendorRequest;
 import com.percy.inventory.Vendor.dto.UpdateVendorRequest;
 import com.percy.inventory.Vendor.dto.VendorResponse;
+import org.springframework.stereotype.Component;
 
+@Component
 public class VendorMapper {
-    public static VendorResponse toResponse(Vendor vendor){
+
+    public VendorResponse toResponse(Vendor vendor) {
         return new VendorResponse(
-                vendor.getVendorId(),
+                vendor.getId(),
                 vendor.getName(),
                 vendor.getPhone(),
                 vendor.getEmail(),
@@ -15,32 +18,24 @@ public class VendorMapper {
         );
     }
 
-    public static Vendor toEntity(CreateVendorRequest request) {
-        Vendor vendor = new Vendor();
-
-        vendor.setName(request.getName());
-        vendor.setPhone(request.getPhone());
-        vendor.setEmail(request.getEmail());
-        vendor.setAddress(request.getAddress());
-
-        return vendor;
+    public Vendor toEntity(CreateVendorRequest request) {
+        return new Vendor(
+                request.name(),
+                request.phone(),
+                request.email(),
+                request.address()
+        );
     }
 
-    public static void updateEntity(Vendor vendor, UpdateVendorRequest request) {
-        if (request.getName() != null) {
-            vendor.setName(request.getName());
-        }
+    public void updateEntity(
+            Vendor vendor,
+            UpdateVendorRequest request) {
 
-        if (request.getPhone() != null) {
-            vendor.setPhone(request.getPhone());
-        }
-
-        if (request.getEmail() != null) {
-            vendor.setEmail(request.getEmail());
-        }
-
-        if (request.getAddress() != null) {
-            vendor.setAddress(request.getAddress());
-        }
+        vendor.update(
+                request.name(),
+                request.phone(),
+                request.email(),
+                request.address()
+        );
     }
 }
