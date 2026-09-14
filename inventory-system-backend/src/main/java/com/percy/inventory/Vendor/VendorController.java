@@ -5,11 +5,12 @@ import com.percy.inventory.Vendor.dto.UpdateVendorRequest;
 import com.percy.inventory.Vendor.dto.VendorResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/vendors")
@@ -35,8 +36,12 @@ public class VendorController {
     }
 
     @GetMapping
-    public List<VendorResponse> listVendors() {
-        return vendorService.listVendors();
+    public Page<VendorResponse> listVendors(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) VendorStatus status,
+            @PageableDefault(size = 10) Pageable pageable) {
+
+        return vendorService.listVendors(search, status, pageable);
     }
 
     @PatchMapping("/{id}")
@@ -47,9 +52,11 @@ public class VendorController {
         return vendorService.updateVendor(id, request);
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteVendor(@PathVariable Long id) {
-        vendorService.deleteVendor(id);
+    @PatchMapping("/{id}/deactivate")
+    public ResponseEntity<Void> deactivateVendor(
+            @PathVariable Long id) {
+
+        vendorService.deactivateVendor(id);
 
         return ResponseEntity.noContent().build();
     }

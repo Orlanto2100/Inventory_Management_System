@@ -14,7 +14,8 @@ public class VendorMapper {
                 vendor.getName(),
                 vendor.getPhone(),
                 vendor.getEmail(),
-                vendor.getAddress()
+                vendor.getAddress(),
+                vendor.getStatus()
         );
     }
 

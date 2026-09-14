@@ -31,8 +31,12 @@ public class Vendor extends BaseEntity {
     @Column(length = 250)
     private String address;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private VendorStatus status;
+
     @OneToMany(mappedBy = "vendor", fetch = FetchType.LAZY)
-    private List<PurchaseOrder> purchaseOrders = new ArrayList<>();
+    private final List<PurchaseOrder> purchaseOrders = new ArrayList<>();
 
     public Vendor(
             String name,
@@ -44,6 +48,7 @@ public class Vendor extends BaseEntity {
         this.phone = phone;
         this.email = email;
         this.address = address;
+        this.status = VendorStatus.ACTIVE;
     }
 
     public void update(
@@ -67,5 +72,9 @@ public class Vendor extends BaseEntity {
         if (address != null) {
             this.address = address;
         }
+    }
+
+    public void deactivate() {
+        this.status = VendorStatus.INACTIVE;
     }
 }

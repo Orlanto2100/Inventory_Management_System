@@ -4,22 +4,25 @@ import {
   Button,
   Dropdown,
   Layout,
-} from 'antd';
+  Select,
+} from 'antd'
 
 import {
   BellOutlined,
   MenuOutlined,
   UserOutlined,
-} from '@ant-design/icons';
+} from '@ant-design/icons'
 
-const { Header: AntHeader } = Layout;
+import { useTranslation } from 'react-i18next'
+
+const { Header: AntHeader } = Layout
 
 interface HeaderProps {
-  isMobile: boolean;
-  setDrawerOpen: (open: boolean) => void;
-  pageTitle: string;
-  userMenuItems: any[];
-  navigate: (path: string) => void;
+  isMobile: boolean
+  setDrawerOpen: (open: boolean) => void
+  pageTitle: string
+  userMenuItems: any[]
+  navigate: (path: string) => void
 }
 
 function Header({
@@ -29,6 +32,14 @@ function Header({
   userMenuItems,
   navigate,
 }: HeaderProps) {
+  const { i18n } = useTranslation()
+
+  function handleLanguageChange(
+    language: string,
+  ) {
+    i18n.changeLanguage(language)
+  }
+
   return (
     <AntHeader
       style={{
@@ -54,7 +65,9 @@ function Header({
           <Button
             type="text"
             icon={<MenuOutlined />}
-            onClick={() => setDrawerOpen(true)}
+            onClick={() =>
+              setDrawerOpen(true)
+            }
             style={{
               width: 40,
               height: 40,
@@ -98,12 +111,28 @@ function Header({
           />
         </Badge>
 
+        <Select
+          value={i18n.language}
+          onChange={handleLanguageChange}
+          style={{ width: 110 }}
+          options={[
+            {
+              label: 'English',
+              value: 'en',
+            },
+            {
+              label: 'မြန်မာ',
+              value: 'my',
+            },
+          ]}
+        />
+
         <Dropdown
           menu={{
             items: userMenuItems,
             onClick: ({ key }) => {
               if (key === 'logout') {
-                navigate('/login');
+                navigate('/login')
               }
             },
           }}
@@ -142,7 +171,7 @@ function Header({
         </Dropdown>
       </div>
     </AntHeader>
-  );
+  )
 }
 
-export default Header;
+export default Header
