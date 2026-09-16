@@ -1,6 +1,61 @@
-import { DatePicker, Flex, Input, Select } from 'antd'
+import {
+  DatePicker,
+  Flex,
+  Input,
+  Select,
+} from 'antd'
+import type { Dayjs } from 'dayjs'
 
-function RfqFilters() {
+export type RfqFilterValues = {
+  search?: string
+  status?: string
+  vendorId?: number
+  responseDeadline?: Dayjs | null
+}
+
+type RfqFiltersProps = {
+  values: RfqFilterValues
+  vendors: {
+    label: string
+    value: number
+  }[]
+  onChange: (
+    values: RfqFilterValues,
+  ) => void
+}
+
+const statusOptions = [
+  {
+    label: 'Draft',
+    value: 'DRAFT',
+  },
+  {
+    label: 'Sent',
+    value: 'SENT',
+  },
+  {
+    label: 'Responses Received',
+    value: 'RESPONSES_RECEIVED',
+  },
+  {
+    label: 'Awarded',
+    value: 'AWARDED',
+  },
+  {
+    label: 'Closed',
+    value: 'CLOSED',
+  },
+  {
+    label: 'Cancelled',
+    value: 'CANCELLED',
+  },
+]
+
+function RfqFilters({
+  values,
+  vendors,
+  onChange,
+}: RfqFiltersProps) {
   return (
     <Flex
       wrap
@@ -9,52 +64,69 @@ function RfqFilters() {
       <Input.Search
         placeholder="Search RFQ number or title"
         allowClear
-        style={{ width: 280 }}
+        value={values.search}
+        onChange={(event) =>
+          onChange({
+            ...values,
+            search: event.target.value,
+          })
+        }
+        onSearch={(search) =>
+          onChange({
+            ...values,
+            search,
+          })
+        }
+        style={{
+          width: 280,
+        }}
       />
 
       <Select
         placeholder="Status"
         allowClear
-        style={{ width: 160 }}
-        options={[
-          { label: 'Draft', value: 'DRAFT' },
-          { label: 'Sent', value: 'SENT' },
-          { label: 'Open', value: 'OPEN' },
-          {
-            label: 'Responses Received',
-            value: 'RESPONSES_RECEIVED',
-          },
-          {
-            label: 'Under Review',
-            value: 'UNDER_REVIEW',
-          },
-          { label: 'Awarded', value: 'AWARDED' },
-          { label: 'Closed', value: 'CLOSED' },
-          { label: 'Cancelled', value: 'CANCELLED' },
-        ]}
+        value={values.status}
+        onChange={(status) =>
+          onChange({
+            ...values,
+            status,
+          })
+        }
+        options={statusOptions}
+        style={{
+          width: 180,
+        }}
       />
 
       <Select
         placeholder="Vendor"
         allowClear
-        style={{ width: 200 }}
-        options={[
-          {
-            label: 'ABC Office Supply',
-            value: 'abc',
-          },
-          {
-            label: 'Global Furniture',
-            value: 'global',
-          },
-          {
-            label: 'Modern Office Ltd',
-            value: 'modern',
-          },
-        ]}
+        showSearch
+        optionFilterProp="label"
+        value={values.vendorId}
+        onChange={(vendorId) =>
+          onChange({
+            ...values,
+            vendorId,
+          })
+        }
+        options={vendors}
+        style={{
+          width: 200,
+        }}
       />
 
-      <DatePicker placeholder="Response deadline" />
+      <DatePicker
+        placeholder="Response deadline"
+        allowClear
+        value={values.responseDeadline}
+        onChange={(responseDeadline) =>
+          onChange({
+            ...values,
+            responseDeadline,
+          })
+        }
+      />
     </Flex>
   )
 }

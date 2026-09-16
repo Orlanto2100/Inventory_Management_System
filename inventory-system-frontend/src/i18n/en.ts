@@ -9,6 +9,43 @@ const en = {
     edit: 'Edit',
     view: 'View',
     delete: 'Delete',
+
+    profile: 'Profile',
+    settings: 'Settings',
+    logout: 'Logout',
+
+    inventorySystem: 'Inventory System',
+  },
+
+  navigation: {
+    dashboard: 'Dashboard',
+
+    inventory: 'Inventory',
+    products: 'Products',
+    warehouses: 'Warehouses',
+    locations: 'Locations',
+
+    sales: 'Sales',
+    customers: 'Customers',
+    customerQuotations: 'Customer Quotations',
+    salesOrders: 'Sales Orders',
+    deliveries: 'Deliveries',
+    customerInvoices: 'Customer Invoices',
+
+    purchasing: 'Purchasing',
+    vendors: 'Vendors',
+    purchaseRequests: 'Purchase Requests',
+    rfqs: 'RFQs',
+    vendorQuotations: 'Vendor Quotations',
+    purchaseOrders: 'Purchase Orders',
+    receipts: 'Receipts',
+    vendorInvoices: 'Vendor Invoices',
+
+    operations: 'Operations',
+    stockMovements: 'Stock Movements',
+
+    administration: 'Administration',
+    users: 'Users',
   },
 
   vendor: {

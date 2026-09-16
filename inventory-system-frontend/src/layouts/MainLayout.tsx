@@ -1,35 +1,43 @@
-import { useState } from 'react';
+import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   ConfigProvider,
   Grid,
   Layout,
-} from 'antd';
+} from 'antd'
 import {
   Outlet,
   useLocation,
   useNavigate,
-} from 'react-router-dom';
+} from 'react-router-dom'
 
-import Sidebar from './Sidebar';
-import MobileSidebar from './MobileSidebar';
-import AppHeader from './Header';
+import Sidebar from './Sidebar'
+import MobileSidebar from './MobileSidebar'
+import AppHeader from './Header'
 
-import { menuItems, userMenuItems } from './menuItems';
-import { getPageTitle } from './pageTitles';
+import {
+  menuItems,
+  userMenuItems,
+} from './menuItems'
 
-const { Content } = Layout;
-const { useBreakpoint } = Grid;
+import { getPageTitle } from './pageTitles'
+
+const { Content } = Layout
+const { useBreakpoint } = Grid
 
 function MainLayout() {
-  const screens = useBreakpoint();
-  const isMobile = !screens.lg;
+  const screens = useBreakpoint()
+  const isMobile = !screens.lg
 
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false)
 
-  const navigate = useNavigate();
-  const location = useLocation();
+  const navigate = useNavigate()
+  const location = useLocation()
+  const { t } = useTranslation()
 
-  const pageTitle = getPageTitle(location.pathname);
+  const pageTitle = t(
+    getPageTitle(location.pathname),
+  )
 
   return (
     <ConfigProvider
@@ -39,7 +47,11 @@ function MainLayout() {
         },
       }}
     >
-      <Layout style={{ minHeight: '100vh' }}>
+      <Layout
+        style={{
+          minHeight: '100vh',
+        }}
+      >
         {isMobile ? (
           <MobileSidebar
             open={drawerOpen}
@@ -52,8 +64,8 @@ function MainLayout() {
 
         <Layout
           style={{
+            minWidth: 0,
             minHeight: '100vh',
-            width: '100%',
             background: '#dfe4ea',
           }}
         >
@@ -68,7 +80,8 @@ function MainLayout() {
           <Content
             style={{
               padding: 24,
-              minHeight: 280,
+              minWidth: 0,
+              flex: 1,
             }}
           >
             <Outlet />
@@ -76,7 +89,7 @@ function MainLayout() {
         </Layout>
       </Layout>
     </ConfigProvider>
-  );
+  )
 }
 
-export default MainLayout;
+export default MainLayout

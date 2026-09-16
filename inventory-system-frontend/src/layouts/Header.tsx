@@ -34,9 +34,7 @@ function Header({
 }: HeaderProps) {
   const { i18n } = useTranslation()
 
-  function handleLanguageChange(
-    language: string,
-  ) {
+  const handleLanguageChange = (language: string) => {
     i18n.changeLanguage(language)
   }
 
@@ -65,9 +63,7 @@ function Header({
           <Button
             type="text"
             icon={<MenuOutlined />}
-            onClick={() =>
-              setDrawerOpen(true)
-            }
+            onClick={() => setDrawerOpen(true)}
             style={{
               width: 40,
               height: 40,
@@ -116,14 +112,8 @@ function Header({
           onChange={handleLanguageChange}
           style={{ width: 110 }}
           options={[
-            {
-              label: 'English',
-              value: 'en',
-            },
-            {
-              label: 'မြန်မာ',
-              value: 'my',
-            },
+            { label: 'English', value: 'en' },
+            { label: 'မြန်မာ', value: 'my' },
           ]}
         />
 

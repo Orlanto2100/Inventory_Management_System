@@ -1,10 +1,23 @@
-import { ConfigProvider, Drawer, Menu } from 'antd';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { ConfigProvider, Drawer, Menu } from 'antd'
+import { useLocation, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
+
+interface MenuItem {
+  key: string
+  label: string
+  icon?: React.ReactNode
+}
+
+interface MenuSection extends MenuItem {
+  children: MenuItem[]
+}
+
+type SidebarMenuItem = MenuItem | MenuSection
 
 interface MobileSidebarProps {
-  open: boolean;
-  setOpen: (open: boolean) => void;
-  menuItems: any[];
+  open: boolean
+  setOpen: (open: boolean) => void
+  menuItems: SidebarMenuItem[]
 }
 
 function MobileSidebar({
@@ -12,13 +25,36 @@ function MobileSidebar({
   setOpen,
   menuItems,
 }: MobileSidebarProps) {
-  const navigate = useNavigate();
-  const location = useLocation();
+  const navigate = useNavigate()
+  const location = useLocation()
+  const { t } = useTranslation()
 
-  const handleMenuClick = ({ key }: { key: string }) => {
-    navigate(key);
-    setOpen(false);
-  };
+  const translatedMenuItems = menuItems.map((item) => {
+    if ('children' in item) {
+      return {
+        ...item,
+        label: t(item.label),
+        children: item.children.map((child) => ({
+          ...child,
+          label: t(child.label),
+        })),
+      }
+    }
+
+    return {
+      ...item,
+      label: t(item.label),
+    }
+  })
+
+  const handleMenuClick = ({
+    key,
+  }: {
+    key: string
+  }) => {
+    navigate(key)
+    setOpen(false)
+  }
 
   return (
     <Drawer
@@ -46,7 +82,7 @@ function MobileSidebar({
           borderBottom: '1px solid #334155',
         }}
       >
-        Inventory System
+        {t('common.inventorySystem')}
       </div>
 
       <ConfigProvider
@@ -67,7 +103,7 @@ function MobileSidebar({
         <Menu
           mode="inline"
           theme="dark"
-          items={menuItems}
+          items={translatedMenuItems}
           selectedKeys={[location.pathname]}
           onClick={handleMenuClick}
           style={{
@@ -76,7 +112,7 @@ function MobileSidebar({
         />
       </ConfigProvider>
     </Drawer>
-  );
+  )
 }
 
-export default MobileSidebar;
+export default MobileSidebar

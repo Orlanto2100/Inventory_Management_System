@@ -1,5 +1,6 @@
 import {
   Dropdown,
+  Empty,
   Table,
   Tag,
   Typography,
@@ -10,64 +11,32 @@ import type {
 } from 'antd'
 import { MoreOutlined } from '@ant-design/icons'
 
-type RfqStatus =
+export type RfqStatus =
   | 'DRAFT'
   | 'SENT'
-  | 'OPEN'
   | 'RESPONSES_RECEIVED'
-  | 'UNDER_REVIEW'
   | 'AWARDED'
   | 'CLOSED'
   | 'CANCELLED'
 
-type Rfq = {
-  key: string
+export type Rfq = {
+  rfqId: number
   rfqNumber: string
   title: string
-  vendors: number
-  items: number
+  vendorCount: number
+  itemCount: number
   responseDeadline: string
   status: RfqStatus
 }
 
-const rfqs: Rfq[] = [
-  {
-    key: '1',
-    rfqNumber: 'RFQ-001',
-    title: 'Office Furniture',
-    vendors: 3,
-    items: 5,
-    responseDeadline: '15 Sep 2026',
-    status: 'OPEN',
-  },
-  {
-    key: '2',
-    rfqNumber: 'RFQ-002',
-    title: 'Printer Supplies',
-    vendors: 4,
-    items: 8,
-    responseDeadline: '12 Sep 2026',
-    status: 'UNDER_REVIEW',
-  },
-  {
-    key: '3',
-    rfqNumber: 'RFQ-003',
-    title: 'Warehouse Equipment',
-    vendors: 2,
-    items: 3,
-    responseDeadline: '05 Sep 2026',
-    status: 'AWARDED',
-  },
-  {
-    key: '4',
-    rfqNumber: 'RFQ-004',
-    title: 'Packaging Materials',
-    vendors: 5,
-    items: 6,
-    responseDeadline: '20 Sep 2026',
-    status: 'DRAFT',
-  },
-]
+type RfqTableProps = {
+  rfqs: Rfq[]
+  loading?: boolean
+  onAction?: (
+    action: string,
+    rfq: Rfq,
+  ) => void
+}
 
 const statusConfig: Record<
   RfqStatus,
@@ -84,17 +53,9 @@ const statusConfig: Record<
     label: 'Sent',
     color: 'blue',
   },
-  OPEN: {
-    label: 'Open',
-    color: 'green',
-  },
   RESPONSES_RECEIVED: {
     label: 'Responses Received',
     color: 'gold',
-  },
-  UNDER_REVIEW: {
-    label: 'Under Review',
-    color: 'orange',
   },
   AWARDED: {
     label: 'Awarded',
@@ -112,11 +73,21 @@ const statusConfig: Record<
 
 function getActionItems(
   record: Rfq,
+  onAction?: (
+    action: string,
+    rfq: Rfq,
+  ) => void,
 ): MenuProps['items'] {
+  const action = (key: string) => ({
+    onClick: () =>
+      onAction?.(key, record),
+  })
+
   const items: MenuProps['items'] = [
     {
       key: 'view',
       label: 'View',
+      ...action('view'),
     },
   ]
 
@@ -126,41 +97,42 @@ function getActionItems(
         {
           key: 'edit',
           label: 'Edit',
+          ...action('edit'),
         },
         {
           key: 'send',
           label: 'Send RFQ',
+          ...action('send'),
         },
         {
           key: 'delete',
           label: 'Delete',
           danger: true,
+          ...action('delete'),
         },
       )
       break
 
-    case 'OPEN':
+    case 'SENT':
       items.push(
-        {
-          key: 'responses',
-          label: 'View Responses',
-        },
         {
           key: 'reminder',
           label: 'Send Reminder',
+          ...action('reminder'),
         },
         {
           key: 'close',
           label: 'Close RFQ',
+          ...action('close'),
         },
       )
       break
 
     case 'RESPONSES_RECEIVED':
-    case 'UNDER_REVIEW':
       items.push({
         key: 'compare',
         label: 'Compare Quotations',
+        ...action('compare'),
       })
       break
 
@@ -168,6 +140,7 @@ function getActionItems(
       items.push({
         key: 'purchase-order',
         label: 'Create Purchase Order',
+        ...action('purchase-order'),
       })
       break
   }
@@ -175,81 +148,99 @@ function getActionItems(
   return items
 }
 
-const columns: TableColumnsType<Rfq> = [
-  {
-    title: 'RFQ No.',
-    dataIndex: 'rfqNumber',
-    key: 'rfqNumber',
-  },
-  {
-    title: 'Title',
-    dataIndex: 'title',
-    key: 'title',
-    render: (title: string) => (
-      <Typography.Text strong>
-        {title}
-      </Typography.Text>
-    ),
-  },
-  {
-    title: 'Vendors',
-    dataIndex: 'vendors',
-    key: 'vendors',
-  },
-  {
-    title: 'Items',
-    dataIndex: 'items',
-    key: 'items',
-  },
-  {
-    title: 'Response Deadline',
-    dataIndex: 'responseDeadline',
-    key: 'responseDeadline',
-  },
-  {
-    title: 'Status',
-    dataIndex: 'status',
-    key: 'status',
-    render: (status: RfqStatus) => {
-      const config = statusConfig[status]
-
-      return (
-        <Tag color={config.color}>
-          {config.label}
-        </Tag>
-      )
+function RfqTable({
+  rfqs,
+  loading = false,
+  onAction,
+}: RfqTableProps) {
+  const columns: TableColumnsType<Rfq> = [
+    {
+      title: 'RFQ No.',
+      dataIndex: 'rfqNumber',
+      key: 'rfqNumber',
     },
-  },
-  {
-    title: 'Actions',
-    key: 'actions',
-    align: 'right',
-    render: (_, record) => (
-      <Dropdown
-        trigger={['click']}
-        menu={{
-          items: getActionItems(record),
-        }}
-      >
-        <MoreOutlined
-          style={{
-            fontSize: 20,
-            cursor: 'pointer',
-          }}
-        />
-      </Dropdown>
-    ),
-  },
-]
+    {
+      title: 'Title',
+      dataIndex: 'title',
+      key: 'title',
+      render: (title: string) => (
+        <Typography.Text strong>
+          {title}
+        </Typography.Text>
+      ),
+    },
+    {
+      title: 'Vendors',
+      dataIndex: 'vendorCount',
+      key: 'vendorCount',
+    },
+    {
+      title: 'Items',
+      dataIndex: 'itemCount',
+      key: 'itemCount',
+    },
+    {
+      title: 'Response Deadline',
+      dataIndex: 'responseDeadline',
+      key: 'responseDeadline',
+    },
+    {
+      title: 'Status',
+      dataIndex: 'status',
+      key: 'status',
+      render: (status: RfqStatus) => {
+        const config =
+          statusConfig[status]
 
-function RfqTable() {
+        return (
+          <Tag color={config.color}>
+            {config.label}
+          </Tag>
+        )
+      },
+    },
+    {
+      title: 'Actions',
+      key: 'actions',
+      align: 'right',
+      fixed: 'right',
+      render: (_, record) => (
+        <Dropdown
+          trigger={['click']}
+          menu={{
+            items: getActionItems(
+              record,
+              onAction,
+            ),
+          }}
+        >
+          <MoreOutlined
+            style={{
+              fontSize: 20,
+              cursor: 'pointer',
+            }}
+          />
+        </Dropdown>
+      ),
+    },
+  ]
+
   return (
     <Table<Rfq>
+      rowKey="rfqId"
       columns={columns}
       dataSource={rfqs}
+      loading={loading}
+      locale={{
+        emptyText: (
+          <Empty description="No RFQs found." />
+        ),
+      }}
       pagination={{
         pageSize: 10,
-        showSizeChanger: false,
+        showSizeChanger: true,
+        showTotal: (total) =>
+          `Total ${total} RFQs`,
       }}
       scroll={{ x: 900 }}
     />
