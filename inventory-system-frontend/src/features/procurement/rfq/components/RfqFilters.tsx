@@ -6,9 +6,13 @@ import {
 } from 'antd'
 import type { Dayjs } from 'dayjs'
 
+import type {
+  RfqStatus,
+} from '../../../../api/rfqApi'
+
 export type RfqFilterValues = {
   search?: string
-  status?: string
+  status?: RfqStatus
   vendorId?: number
   responseDeadline?: Dayjs | null
 }

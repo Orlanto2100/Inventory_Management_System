@@ -5,7 +5,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.filter.CorsFilter;
 
 import java.util.List;
 
@@ -21,22 +20,27 @@ public class CorsConfig {
         );
 
         configuration.setAllowedMethods(
-                List.of("GET", "POST", "PATCH", "DELETE", "OPTIONS")
+                List.of(
+                        "GET",
+                        "POST",
+                        "PATCH",
+                        "DELETE",
+                        "OPTIONS"
+                )
         );
 
-        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowedHeaders(
+                List.of("*")
+        );
 
         UrlBasedCorsConfigurationSource source =
                 new UrlBasedCorsConfigurationSource();
 
-        source.registerCorsConfiguration("/api/**", configuration);
+        source.registerCorsConfiguration(
+                "/api/**",
+                configuration
+        );
 
         return source;
-    }
-
-    @Bean
-    public CorsFilter corsFilter(
-            CorsConfigurationSource corsConfigurationSource) {
-        return new CorsFilter(corsConfigurationSource);
     }
 }

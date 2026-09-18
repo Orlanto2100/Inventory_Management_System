@@ -1,56 +1,143 @@
-import { useState } from 'react'
-import { Button, Flex, Typography } from 'antd'
+import { useMemo, useState } from 'react'
+import {
+  Button,
+  Card,
+  Col,
+  Row,
+  Typography,
+} from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 
-import RfqFilters from '../components/RfqFilters'
+import RfqFilters, {
+  type RfqFilterValues,
+} from '../components/RfqFilters'
 import RfqTable from '../components/RfqTable'
-import RfqFormDrawer from '../components/RfqFormDrawer'
+import RfqFormModal from '../components/RfqFormModal'
+import { useRfqs } from '../hooks/useRfqs'
+
+import { useVendors } from '../../../vendors/hooks/useVendors'
+import { useProducts } from '../../../products/hooks/useProducts'
 
 const { Title, Text } = Typography
 
 function RfqPage() {
-  const [drawerOpen, setDrawerOpen] = useState(false)
+  const [modalOpen, setModalOpen] =
+    useState(false)
+
+  const [filters, setFilters] =
+    useState<RfqFilterValues>({})
+
+  const {
+    rfqs,
+    loading,
+  } = useRfqs()
+
+  const {
+    vendors,
+    loading: vendorsLoading,
+  } = useVendors()
+
+  const {
+    products,
+    loading: productsLoading,
+  } = useProducts()
+
+  const vendorOptions = useMemo(
+    () =>
+      vendors.map((vendor) => ({
+        label: vendor.name,
+        value: vendor.id,
+      })),
+    [vendors],
+  )
+
+  const productOptions = useMemo(
+  () =>
+    products.map((product) => ({
+      label: product.productName,
+      value: product.productId,
+    })),
+  [products],
+)
 
   return (
-    <Flex vertical gap={24}>
-      {/* Page header */}
-      <Flex
-        justify="space-between"
-        align="center"
-        wrap
-        gap={16}
-      >
-        <div>
-          <Title level={2} style={{ margin: 0 }}>
-            Requests for Quotation
-          </Title>
-
-          <Text type="secondary">
-            Create and manage requests sent to vendors.
-          </Text>
-        </div>
-
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          onClick={() => setDrawerOpen(true)}
+    <div>
+      <div>
+        <Title
+          level={2}
+          style={{
+            margin: 0,
+            color: '#263238',
+          }}
         >
-          Create RFQ
-        </Button>
-      </Flex>
+          Requests for Quotation
+        </Title>
 
-      {/* Filters */}
-      <RfqFilters />
+        <Text type="secondary">
+          Create and manage requests sent to vendors.
+        </Text>
+      </div>
 
-      {/* RFQ table */}
-      <RfqTable />
+      <Card
+        style={{
+          marginTop: 24,
+          background: '#f7f8fa',
+        }}
+      >
+        <Row
+          gutter={[12, 12]}
+          align="middle"
+          justify="space-between"
+          style={{
+            marginBottom: 20,
+          }}
+        >
+          <Col xs={24} lg={18}>
+            <RfqFilters
+              values={filters}
+              vendors={vendorOptions}
+              onChange={setFilters}
+            />
+          </Col>
 
-      {/* Create RFQ drawer */}
-      <RfqFormDrawer
-        open={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
+          <Col
+            xs={24}
+            lg={6}
+            style={{
+              textAlign: 'right',
+            }}
+          >
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() =>
+                setModalOpen(true)
+              }
+            >
+              Create RFQ
+            </Button>
+          </Col>
+        </Row>
+
+        <RfqTable
+          rfqs={rfqs}
+          loading={loading}
+        />
+      </Card>
+
+      <RfqFormModal
+        open={modalOpen}
+        onClose={() =>
+          setModalOpen(false)
+        }
+        vendors={vendorOptions}
+        products={productOptions}
+        submitting={
+          vendorsLoading ||
+          productsLoading
+        }
       />
-    </Flex>
+    </div>
   )
 }
 

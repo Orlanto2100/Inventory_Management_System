@@ -1,7 +1,7 @@
 package com.percy.inventory.Customer.dto;
 
 public record CustomerResponse(
-        Long customerId,
+        Long id,
         String name,
         String phone,
         String email,

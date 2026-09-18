@@ -11,30 +11,27 @@ import type {
 } from 'antd'
 import { MoreOutlined } from '@ant-design/icons'
 
-export type RfqStatus =
-  | 'DRAFT'
-  | 'SENT'
-  | 'RESPONSES_RECEIVED'
-  | 'AWARDED'
-  | 'CLOSED'
-  | 'CANCELLED'
+import type {
+  RfqResponse,
+  RfqStatus,
+} from '../../../../api/rfqApi'
 
-export type Rfq = {
-  rfqId: number
-  rfqNumber: string
-  title: string
-  vendorCount: number
-  itemCount: number
-  responseDeadline: string
-  status: RfqStatus
-}
+type RfqAction =
+  | 'view'
+  | 'edit'
+  | 'send'
+  | 'delete'
+  | 'reminder'
+  | 'close'
+  | 'compare'
+  | 'purchase-order'
 
 type RfqTableProps = {
-  rfqs: Rfq[]
+  rfqs: RfqResponse[]
   loading?: boolean
   onAction?: (
-    action: string,
-    rfq: Rfq,
+    action: RfqAction,
+    rfq: RfqResponse,
   ) => void
 }
 
@@ -72,13 +69,13 @@ const statusConfig: Record<
 }
 
 function getActionItems(
-  record: Rfq,
+  record: RfqResponse,
   onAction?: (
-    action: string,
-    rfq: Rfq,
+    action: RfqAction,
+    rfq: RfqResponse,
   ) => void,
 ): MenuProps['items'] {
-  const action = (key: string) => ({
+  const action = (key: RfqAction) => ({
     onClick: () =>
       onAction?.(key, record),
   })
@@ -153,7 +150,7 @@ function RfqTable({
   loading = false,
   onAction,
 }: RfqTableProps) {
-  const columns: TableColumnsType<Rfq> = [
+  const columns: TableColumnsType<RfqResponse> = [
     {
       title: 'RFQ No.',
       dataIndex: 'rfqNumber',
@@ -226,7 +223,7 @@ function RfqTable({
   ]
 
   return (
-    <Table<Rfq>
+    <Table<RfqResponse>
       rowKey="rfqId"
       columns={columns}
       dataSource={rfqs}
