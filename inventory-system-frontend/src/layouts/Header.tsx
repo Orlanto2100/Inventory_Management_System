@@ -7,6 +7,8 @@ import {
   Select,
 } from 'antd'
 
+import type { MenuProps } from 'antd'
+
 import {
   BellOutlined,
   MenuOutlined,
@@ -21,7 +23,7 @@ interface HeaderProps {
   isMobile: boolean
   setDrawerOpen: (open: boolean) => void
   pageTitle: string
-  userMenuItems: any[]
+  userMenuItems: MenuProps['items']
   navigate: (path: string) => void
 }
 
@@ -32,11 +34,77 @@ function Header({
   userMenuItems,
   navigate,
 }: HeaderProps) {
-  const { i18n } = useTranslation()
+  const { t, i18n } = useTranslation()
 
-  const handleLanguageChange = (language: string) => {
+  // =====================================================
+  // Current user
+  // =====================================================
+
+  const username =
+    localStorage.getItem('username') ?? 'Admin'
+
+  // =====================================================
+  // Translate user menu
+  // =====================================================
+
+  const translatedUserMenuItems =
+    userMenuItems?.map((item) => {
+      if (!item || item.type === 'divider') {
+        return item
+      }
+
+      if (
+        typeof item.label !== 'string'
+      ) {
+        return item
+      }
+
+      return {
+        ...item,
+        label: t(item.label),
+      }
+    })
+
+  // =====================================================
+  // Language
+  // =====================================================
+
+  const handleLanguageChange = (
+    language: string,
+  ) => {
     i18n.changeLanguage(language)
   }
+
+  // =====================================================
+  // User menu
+  // =====================================================
+
+  const handleUserMenuClick: MenuProps['onClick'] = ({
+    key,
+  }) => {
+    if (key === 'profile') {
+      navigate('/profile')
+      return
+    }
+
+    if (key === 'settings') {
+      navigate('/settings')
+      return
+    }
+
+    if (key === 'logout') {
+      localStorage.removeItem('token')
+      localStorage.removeItem('role')
+      localStorage.removeItem('accountType')
+      localStorage.removeItem('username')
+
+      navigate('/login')
+    }
+  }
+
+  // =====================================================
+  // Render
+  // =====================================================
 
   return (
     <AntHeader
@@ -47,10 +115,15 @@ function Header({
         height: 64,
         padding: '0 24px',
         background: '#e5eaf0',
-        borderBottom: '1px solid #cbd3dc',
+        borderBottom:
+          '1px solid #cbd3dc',
       }}
     >
-      {/* Left side */}
+
+      {/* =================================================
+          Left Side
+          ================================================= */}
+
       <div
         style={{
           display: 'flex',
@@ -59,11 +132,14 @@ function Header({
           minWidth: 0,
         }}
       >
+
         {isMobile && (
           <Button
             type="text"
             icon={<MenuOutlined />}
-            onClick={() => setDrawerOpen(true)}
+            onClick={() =>
+              setDrawerOpen(true)
+            }
             style={{
               width: 40,
               height: 40,
@@ -87,7 +163,10 @@ function Header({
         </span>
       </div>
 
-      {/* Right side */}
+      {/* =================================================
+          Right Side
+          ================================================= */}
+
       <div
         style={{
           display: 'flex',
@@ -95,7 +174,13 @@ function Header({
           gap: 12,
         }}
       >
-        <Badge count={3} size="small">
+
+        {/* Notifications */}
+
+        <Badge
+          count={3}
+          size="small"
+        >
           <Button
             type="text"
             shape="circle"
@@ -107,24 +192,36 @@ function Header({
           />
         </Badge>
 
+        {/* Language */}
+
         <Select
           value={i18n.language}
-          onChange={handleLanguageChange}
-          style={{ width: 110 }}
+          onChange={
+            handleLanguageChange
+          }
+          style={{
+            width: 110,
+          }}
           options={[
-            { label: 'English', value: 'en' },
-            { label: 'မြန်မာ', value: 'my' },
+            {
+              label: 'English',
+              value: 'en',
+            },
+            {
+              label: 'မြန်မာ',
+              value: 'my',
+            },
           ]}
         />
 
+        {/* User Menu */}
+
         <Dropdown
           menu={{
-            items: userMenuItems,
-            onClick: ({ key }) => {
-              if (key === 'logout') {
-                navigate('/login')
-              }
-            },
+            items:
+              translatedUserMenuItems,
+            onClick:
+              handleUserMenuClick,
           }}
           trigger={['click']}
         >
@@ -139,6 +236,7 @@ function Header({
               color: '#263238',
             }}
           >
+
             <Avatar
               size={32}
               icon={<UserOutlined />}
@@ -154,11 +252,13 @@ function Header({
                   color: '#263238',
                 }}
               >
-                Admin
+                {username}
               </span>
             )}
+
           </Button>
         </Dropdown>
+
       </div>
     </AntHeader>
   )

@@ -11,6 +11,8 @@ import {
   LockOutlined,
   UserOutlined,
 } from '@ant-design/icons'
+import { useNavigate } from 'react-router-dom'
+import { login } from '../../../api/authApi'
 
 const { Title, Text } = Typography
 
@@ -21,22 +23,29 @@ type LoginFormValues = {
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false)
+  const navigate = useNavigate()
 
   const handleLogin = async (values: LoginFormValues) => {
     try {
       setLoading(true)
 
-      // Backend login API will be connected here later.
-      console.log('Login values:', values)
+      const response = await login(values)
 
-      // Temporary simulation of login request.
-      await new Promise((resolve) =>
-        setTimeout(resolve, 800),
-      )
+      localStorage.setItem('token', response.token)
+      localStorage.setItem('username', response.username)
+      localStorage.setItem('accountType', response.accountType)
+
+      if (response.role) {
+        localStorage.setItem('role', response.role)
+      } else {
+        localStorage.removeItem('role')
+      }
 
       message.success('Login successful.')
+
+      navigate('/')
     } catch {
-      message.error('Login failed.')
+      message.error('Invalid username or password.')
     } finally {
       setLoading(false)
     }
@@ -64,7 +73,6 @@ export default function LoginPage() {
           },
         }}
       >
-        {/* Header */}
         <div
           style={{
             textAlign: 'center',
@@ -86,13 +94,11 @@ export default function LoginPage() {
           </Text>
         </div>
 
-        {/* Login Form */}
         <Form<LoginFormValues>
           layout="vertical"
           onFinish={handleLogin}
           autoComplete="off"
         >
-          {/* Username */}
           <Form.Item
             label="Username"
             name="username"
@@ -110,7 +116,6 @@ export default function LoginPage() {
             />
           </Form.Item>
 
-          {/* Password */}
           <Form.Item
             label="Password"
             name="password"
@@ -128,7 +133,6 @@ export default function LoginPage() {
             />
           </Form.Item>
 
-          {/* Submit */}
           <Form.Item style={{ marginBottom: 0 }}>
             <Button
               type="primary"
@@ -142,7 +146,6 @@ export default function LoginPage() {
           </Form.Item>
         </Form>
 
-        {/* Footer */}
         <div
           style={{
             textAlign: 'center',

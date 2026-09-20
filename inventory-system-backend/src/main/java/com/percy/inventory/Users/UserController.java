@@ -5,7 +5,6 @@ import com.percy.inventory.Users.dto.CreateUserRequest;
 import com.percy.inventory.Users.dto.UpdateUserProfileRequest;
 import com.percy.inventory.Users.dto.UserResponse;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -25,9 +24,10 @@ public class UserController {
 
     @PostMapping
     public ResponseEntity<UserResponse> createUser(
-            @Valid @RequestBody CreateUserRequest request) {
-
-        UserResponse response = userService.createUser(request);
+            @Valid @RequestBody CreateUserRequest request
+    ) {
+        UserResponse response =
+                userService.createUser(request);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -36,16 +36,9 @@ public class UserController {
 
     @GetMapping("/{id}")
     public UserResponse getUserById(
-            @PathVariable @Positive Long id) {
-
+            @PathVariable @Positive Long id
+    ) {
         return userService.getUserById(id);
-    }
-
-    @GetMapping("/email/{email}")
-    public UserResponse getUserByEmail(
-            @PathVariable @Email String email) {
-
-        return userService.getUserByEmail(email);
     }
 
     @GetMapping
@@ -53,32 +46,37 @@ public class UserController {
         return userService.listUsers();
     }
 
-    @PutMapping("/{id}")
-    public UserResponse updateUser(
+    @PatchMapping("/{id}")
+    public UserResponse updateUserProfile(
             @PathVariable @Positive Long id,
-            @Valid @RequestBody UpdateUserProfileRequest request) {
-
-        return userService.updateUserProfile(id, request);
+            @Valid @RequestBody UpdateUserProfileRequest request
+    ) {
+        return userService.updateUserProfile(
+                id,
+                request
+        );
     }
 
-    @PutMapping("/{id}/password")
+    @PatchMapping("/{id}/password")
     public UserResponse changePassword(
             @PathVariable @Positive Long id,
-            @Valid @RequestBody ChangePasswordRequest request) {
-
+            @Valid @RequestBody ChangePasswordRequest request
+    ) {
         return userService.changePassword(
                 id,
-                request.getOldPassword(),
-                request.getNewPassword()
+                request.oldPassword(),
+                request.newPassword()
         );
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUserById(
-            @PathVariable @Positive Long id) {
-
+            @PathVariable @Positive Long id
+    ) {
         userService.deleteUserById(id);
 
-        return ResponseEntity.noContent().build();
+        return ResponseEntity
+                .noContent()
+                .build();
     }
 }

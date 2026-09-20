@@ -2,6 +2,7 @@ package com.percy.inventory.Users;
 
 public enum Role {
     ADMIN,
-    MANAGER,
-    STAFF
+    WAREHOUSE_STAFF,
+    PURCHASING_STAFF,
+    SALES_STAFF
 }

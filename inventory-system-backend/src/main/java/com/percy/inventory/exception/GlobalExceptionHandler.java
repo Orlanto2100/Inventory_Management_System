@@ -26,6 +26,32 @@ public class GlobalExceptionHandler {
         return problem;
     }
 
+    @ExceptionHandler(DuplicateResourceException.class)
+    public ProblemDetail handleDuplicateResource(
+            DuplicateResourceException ex) {
+
+        ProblemDetail problem = ProblemDetail.forStatus(
+                HttpStatus.CONFLICT
+        );
+
+        problem.setDetail(ex.getMessage());
+
+        return problem;
+    }
+
+    @ExceptionHandler(InvalidPasswordException.class)
+    public ProblemDetail handleInvalidPassword(
+            InvalidPasswordException ex) {
+
+        ProblemDetail problem = ProblemDetail.forStatus(
+                HttpStatus.BAD_REQUEST
+        );
+
+        problem.setDetail(ex.getMessage());
+
+        return problem;
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, String>> handleValidationErrors(
             MethodArgumentNotValidException ex) {

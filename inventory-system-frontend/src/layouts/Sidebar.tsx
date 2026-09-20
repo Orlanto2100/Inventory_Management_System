@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   Button,
   ConfigProvider,
@@ -12,30 +12,29 @@ import {
 } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 
+import type {
+  SidebarMenuItem,
+} from './menuItems'
+
 const { Sider } = Layout
-
-interface MenuItem {
-  key: string
-  label: string
-  icon?: React.ReactNode
-}
-
-interface MenuSection extends MenuItem {
-  children: MenuItem[]
-}
-
-type SidebarMenuItem = MenuItem | MenuSection
 
 interface SidebarProps {
   menuItems: SidebarMenuItem[]
 }
 
-function Sidebar({ menuItems }: SidebarProps) {
+function Sidebar({
+  menuItems,
+}: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false)
+  const [openKeys, setOpenKeys] = useState<string[]>([])
 
   const navigate = useNavigate()
   const location = useLocation()
   const { t } = useTranslation()
+
+  // =====================================================
+  // Translate menu labels
+  // =====================================================
 
   const translatedMenuItems = useMemo(() => {
     return menuItems.map((item) => {
@@ -43,10 +42,13 @@ function Sidebar({ menuItems }: SidebarProps) {
         return {
           ...item,
           label: t(item.label),
-          children: item.children.map((child) => ({
-            ...child,
-            label: t(child.label),
-          })),
+
+          children: item.children.map(
+            (child) => ({
+              ...child,
+              label: t(child.label),
+            }),
+          ),
         }
       }
 
@@ -57,10 +59,15 @@ function Sidebar({ menuItems }: SidebarProps) {
     })
   }, [menuItems, t])
 
-  const openKeys = useMemo(() => {
-    return menuItems
+  // =====================================================
+  // Automatically open the section containing
+  // the current route
+  // =====================================================
+
+  useEffect(() => {
+    const currentSectionKeys = menuItems
       .filter(
-        (item): item is MenuSection =>
+        (item) =>
           'children' in item &&
           item.children.some(
             (child) =>
@@ -68,7 +75,48 @@ function Sidebar({ menuItems }: SidebarProps) {
           ),
       )
       .map((item) => item.key)
-  }, [menuItems, location.pathname])
+
+    setOpenKeys((current) => {
+      const merged = new Set([
+        ...current,
+        ...currentSectionKeys,
+      ])
+
+      return Array.from(merged)
+    })
+  }, [
+    menuItems,
+    location.pathname,
+  ])
+
+  // =====================================================
+  // Navigation
+  // =====================================================
+
+  const handleMenuClick = ({
+    key,
+  }: {
+    key: string
+  }) => {
+    // Only navigate to actual routes.
+    //
+    // Section keys such as:
+    // inventory
+    // sales
+    // purchasing
+    // reports
+    // administration
+    //
+    // are submenu keys, not routes.
+
+    if (key.startsWith('/')) {
+      navigate(key)
+    }
+  }
+
+  // =====================================================
+  // Render
+  // =====================================================
 
   return (
     <Sider
@@ -77,10 +125,16 @@ function Sidebar({ menuItems }: SidebarProps) {
       width={240}
       collapsedWidth={80}
       style={{
+        height: '100vh',
+        flexShrink: 0,
         background: '#1f2937',
+        overflow: 'hidden',
       }}
     >
-      {/* Sidebar Header */}
+      {/* =================================================
+          Sidebar Header
+          ================================================= */}
+
       <div
         style={{
           display: 'flex',
@@ -88,14 +142,18 @@ function Sidebar({ menuItems }: SidebarProps) {
           height: 64,
           padding: '0 16px',
           gap: 8,
-          borderBottom: '1px solid #334155',
+          borderBottom:
+            '1px solid #334155',
+          flexShrink: 0,
         }}
       >
         <Button
           type="text"
           icon={<MenuOutlined />}
           onClick={() =>
-            setCollapsed((value) => !value)
+            setCollapsed(
+              (value) => !value,
+            )
           }
           style={{
             flexShrink: 0,
@@ -115,39 +173,85 @@ function Sidebar({ menuItems }: SidebarProps) {
               whiteSpace: 'nowrap',
             }}
           >
-            {t('common.inventorySystem')}
+            {t(
+              'common.inventorySystem',
+            )}
           </span>
         )}
       </div>
 
-      {/* Navigation */}
-      <ConfigProvider
-        theme={{
-          components: {
-            Menu: {
-              darkItemBg: '#1f2937',
-              darkItemColor: '#cbd5e1',
-              darkItemHoverColor: '#ffffff',
-              darkItemHoverBg: '#273449',
-              darkItemSelectedColor: '#ffffff',
-              darkItemSelectedBg: '#334155',
-              darkSubMenuItemBg: '#1f2937',
-            },
-          },
+      {/* =================================================
+          Scrollable Navigation
+          ================================================= */}
+
+      <div
+        style={{
+          height:
+            'calc(100vh - 64px)',
+          overflowY: 'auto',
+          overflowX: 'hidden',
         }}
       >
-        <Menu
-          mode="inline"
-          theme="dark"
-          items={translatedMenuItems}
-          selectedKeys={[location.pathname]}
-          defaultOpenKeys={openKeys}
-          onClick={({ key }) => navigate(key)}
-          style={{
-            borderInlineEnd: 0,
+        <ConfigProvider
+          theme={{
+            components: {
+              Menu: {
+                darkItemBg:
+                  '#1f2937',
+
+                darkItemColor:
+                  '#cbd5e1',
+
+                darkItemHoverColor:
+                  '#ffffff',
+
+                darkItemHoverBg:
+                  '#273449',
+
+                darkItemSelectedColor:
+                  '#ffffff',
+
+                darkItemSelectedBg:
+                  '#334155',
+
+                darkSubMenuItemBg:
+                  '#1f2937',
+              },
+            },
           }}
-        />
-      </ConfigProvider>
+        >
+          <Menu
+            mode="inline"
+            theme="dark"
+
+            items={
+              translatedMenuItems
+            }
+
+            selectedKeys={[
+              location.pathname,
+            ]}
+
+            openKeys={
+              collapsed
+                ? []
+                : openKeys
+            }
+
+            onOpenChange={
+              setOpenKeys
+            }
+
+            onClick={
+              handleMenuClick
+            }
+
+            style={{
+              borderInlineEnd: 0,
+            }}
+          />
+        </ConfigProvider>
+      </div>
     </Sider>
   )
 }
