@@ -5,12 +5,15 @@ import { PlusOutlined } from '@ant-design/icons'
 import UserFilters from '../components/UserFilters'
 import UserTable from '../components/UserTable'
 import UserFormModal from '../components/UserFormModal'
+import UserDetailsModal from '../components/UserDetailsModal'
+
 import { useUsers } from '../hooks/useUsers'
 
 import type {
   AccountType,
   CreateUserRequest,
   Role,
+  User,
 } from '../types/user'
 
 const { Title } = Typography
@@ -20,10 +23,12 @@ export default function UserPage() {
     users,
     loading,
     addUser,
-    removeUser,
+    deactivateUser,
+    activateUser,
   } = useUsers()
 
   const [search, setSearch] = useState('')
+
   const [accountType, setAccountType] =
     useState<AccountType | undefined>()
 
@@ -32,6 +37,9 @@ export default function UserPage() {
 
   const [modalOpen, setModalOpen] =
     useState(false)
+
+  const [selectedUser, setSelectedUser] =
+    useState<User | null>(null)
 
   const filteredUsers = useMemo(() => {
     const searchValue =
@@ -78,6 +86,10 @@ export default function UserPage() {
     setModalOpen(false)
   }
 
+  const handleViewUser = (user: User) => {
+    setSelectedUser(user)
+  }
+
   return (
     <Card>
       <Flex
@@ -113,7 +125,9 @@ export default function UserPage() {
       <UserTable
         users={filteredUsers}
         loading={loading}
-        onDelete={removeUser}
+        onView={handleViewUser}
+        onDeactivate={deactivateUser}
+        onActivate={activateUser}
       />
 
       <UserFormModal
@@ -121,6 +135,12 @@ export default function UserPage() {
         loading={loading}
         onCancel={() => setModalOpen(false)}
         onSubmit={handleCreateUser}
+      />
+
+      <UserDetailsModal
+        open={selectedUser !== null}
+        user={selectedUser}
+        onClose={() => setSelectedUser(null)}
       />
     </Card>
   )

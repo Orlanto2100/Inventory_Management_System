@@ -28,7 +28,9 @@ public record CreateUserRequest(
         @NotNull(message = "Account type is required")
         AccountType accountType,
 
-        Role role
+        Role role,
+
+        Long warehouseId
 
 ) {
 }

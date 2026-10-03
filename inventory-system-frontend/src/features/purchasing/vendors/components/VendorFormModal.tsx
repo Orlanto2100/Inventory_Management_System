@@ -5,7 +5,7 @@ import {
   Modal,
 } from 'antd'
 
-import type { VendorResponse } from '../../../api/vendorApi'
+import type { VendorResponse } from '../../../../api/vendorApi'
 
 export type VendorFormValues = {
   name: string

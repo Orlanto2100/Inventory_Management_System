@@ -1,305 +1,293 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
+  Alert,
   Button,
   Card,
   Col,
-  Form,
-  Input,
+  Descriptions,
   Modal,
   Row,
-  Select,
-  Space,
-  Table,
-  Tag,
   Typography,
 } from 'antd'
 import {
-  DeleteOutlined,
-  EditOutlined,
   PlusOutlined,
-  SearchOutlined,
+  ReloadOutlined,
 } from '@ant-design/icons'
-import type { ColumnsType } from 'antd/es/table'
+
+import type { WarehouseResponse } from '../../../../api/warehouseApi'
+
+import WarehouseTable from '../components/WarehouseTable'
+import WarehouseFilters from '../components/WarehouseFilters'
+import WarehouseFormModal, {
+  type WarehouseFormValues,
+} from '../components/WarehouseFormModal'
+
+import { useWarehouses } from '../hooks/useWarehouses'
 
 const { Title, Text } = Typography
 
-type Warehouse = {
-  id: number
-  name: string
-  code: string
-  address: string
-  description: string
-  status: 'Active' | 'Inactive'
-}
-
-type WarehouseFormValues = {
-  name: string
-  code: string
-  address: string
-  description: string
-  status: 'Active' | 'Inactive'
-}
-
-const initialWarehouses: Warehouse[] = [
-  {
-    id: 1,
-    name: 'Main Warehouse',
-    code: 'WH-001',
-    address: 'Yangon',
-    description: 'Primary storage warehouse',
-    status: 'Active',
-  },
-  {
-    id: 2,
-    name: 'Mandalay Warehouse',
-    code: 'WH-002',
-    address: 'Mandalay',
-    description: 'Northern distribution warehouse',
-    status: 'Active',
-  },
-  {
-    id: 3,
-    name: 'Bago Warehouse',
-    code: 'WH-003',
-    address: 'Bago',
-    description: 'Regional storage facility',
-    status: 'Active',
-  },
-  {
-    id: 4,
-    name: 'Old Warehouse',
-    code: 'WH-004',
-    address: 'Yangon',
-    description: 'Former storage facility',
-    status: 'Inactive',
-  },
-]
-
 export default function WarehousePage() {
-  const [warehouses, setWarehouses] =
-    useState<Warehouse[]>(initialWarehouses)
+  const { t } = useTranslation()
 
-  const [searchText, setSearchText] = useState('')
+  // ==================================================
+  // Current User Role
+  // ==================================================
 
-  const [statusFilter, setStatusFilter] =
-    useState<Warehouse['status'] | undefined>(
-      undefined,
-    )
+  const userRole = localStorage.getItem('role')
 
-  const [modalOpen, setModalOpen] = useState(false)
+  const isAdmin = userRole === 'ADMIN'
+
+
+  // ==================================================
+  // Warehouse Hook
+  // ==================================================
+
+  const {
+    warehouses,
+    loading,
+    submitting,
+    error,
+    total,
+    search,
+    status,
+    page,
+    pageSize,
+
+    loadWarehouses,
+    create,
+    update,
+    activate,
+    deactivate,
+
+    handleSearch,
+    handleStatusChange,
+    handlePageChange,
+    handleSortChange,
+  } = useWarehouses()
+
+
+  // ==================================================
+  // State
+  // ==================================================
+
+  const [formOpen, setFormOpen] =
+    useState(false)
 
   const [editingWarehouse, setEditingWarehouse] =
-    useState<Warehouse | null>(null)
+    useState<WarehouseResponse | null>(null)
 
-  const [form] =
-    Form.useForm<WarehouseFormValues>()
+  const [viewingWarehouse, setViewingWarehouse] =
+    useState<WarehouseResponse | null>(null)
 
-  const filteredWarehouses =
-    warehouses.filter((warehouse) => {
-      const search =
-        searchText.toLowerCase().trim()
+  const [activatingId, setActivatingId] =
+    useState<number | null>(null)
 
-      const matchesSearch =
-        !search ||
-        warehouse.name
-          .toLowerCase()
-          .includes(search) ||
-        warehouse.code
-          .toLowerCase()
-          .includes(search) ||
-        warehouse.address
-          .toLowerCase()
-          .includes(search) ||
-        warehouse.description
-          .toLowerCase()
-          .includes(search)
+  const [deactivatingId, setDeactivatingId] =
+    useState<number | null>(null)
 
-      const matchesStatus =
-        !statusFilter ||
-        warehouse.status === statusFilter
 
-      return (
-        matchesSearch &&
-        matchesStatus
-      )
-    })
+  // ==================================================
+  // Create
+  // ==================================================
 
-  const openCreateModal = () => {
+  function openCreateModal() {
     setEditingWarehouse(null)
-
-    form.resetFields()
-
-    form.setFieldsValue({
-      status: 'Active',
-    })
-
-    setModalOpen(true)
+    setFormOpen(true)
   }
 
-  const openEditModal = (
-    warehouse: Warehouse,
-  ) => {
+
+  // ==================================================
+  // Edit
+  // ==================================================
+
+  function openEditModal(
+    warehouse: WarehouseResponse,
+  ) {
     setEditingWarehouse(warehouse)
-
-    form.setFieldsValue({
-      name: warehouse.name,
-      code: warehouse.code,
-      address: warehouse.address,
-      description:
-        warehouse.description,
-      status: warehouse.status,
-    })
-
-    setModalOpen(true)
+    setFormOpen(true)
   }
 
-  const closeModal = () => {
-    setModalOpen(false)
-    setEditingWarehouse(null)
-    form.resetFields()
-  }
 
-  const handleSubmit = async () => {
-    const values =
-      await form.validateFields()
+  // ==================================================
+  // Close Form
+  // ==================================================
 
-    if (editingWarehouse) {
-      setWarehouses(
-        (currentWarehouses) =>
-          currentWarehouses.map(
-            (warehouse) =>
-              warehouse.id ===
-              editingWarehouse.id
-                ? {
-                    ...warehouse,
-                    ...values,
-                  }
-                : warehouse,
-          ),
-      )
-    } else {
-      const newWarehouse: Warehouse = {
-        id: Date.now(),
-        ...values,
-      }
-
-      setWarehouses(
-        (currentWarehouses) => [
-          ...currentWarehouses,
-          newWarehouse,
-        ],
-      )
+  function closeFormModal() {
+    if (submitting) {
+      return
     }
 
-    closeModal()
+    setFormOpen(false)
+    setEditingWarehouse(null)
   }
 
-  const handleDelete = (
-    warehouse: Warehouse,
-  ) => {
+
+  // ==================================================
+  // View
+  // ==================================================
+
+  function handleViewWarehouse(
+    warehouse: WarehouseResponse,
+  ) {
+    setViewingWarehouse(warehouse)
+  }
+
+
+  function closeViewModal() {
+    setViewingWarehouse(null)
+  }
+
+
+  // ==================================================
+  // Submit Create / Update
+  // ==================================================
+
+  async function handleSubmit(
+    values: WarehouseFormValues,
+  ) {
+    let success: boolean
+
+    if (editingWarehouse) {
+      success = await update(
+        editingWarehouse.warehouseId,
+        {
+          code: values.code,
+          name: values.name,
+          address: values.address,
+          city: values.city,
+          phoneNumber: values.phoneNumber,
+          email: values.email,
+        },
+      )
+    } else {
+      success = await create({
+        code: values.code,
+        name: values.name,
+        address: values.address,
+        city: values.city,
+        phoneNumber: values.phoneNumber,
+        email: values.email,
+      })
+    }
+
+    if (success) {
+      closeFormModal()
+    }
+  }
+
+
+  // ==================================================
+  // Deactivate
+  // ==================================================
+
+  function handleDeactivateWarehouse(
+    warehouse: WarehouseResponse,
+  ) {
     Modal.confirm({
-      title: 'Delete warehouse?',
+      title: t(
+        'warehouse.deactivateTitle',
+      ),
+
       content: (
         <>
-          Are you sure you want to delete{' '}
+          {t(
+            'warehouse.deactivateMessage',
+          )}{' '}
           <strong>
             {warehouse.name}
           </strong>
           ?
         </>
       ),
-      okText: 'Delete',
+
+      okText: t(
+        'warehouse.deactivate',
+      ),
+
       okType: 'danger',
-      cancelText: 'Cancel',
-      onOk: () => {
-        setWarehouses(
-          (currentWarehouses) =>
-            currentWarehouses.filter(
-              (item) =>
-                item.id !==
-                warehouse.id,
-            ),
+
+      cancelText: t(
+        'common.cancel',
+      ),
+
+      onOk: async () => {
+        setDeactivatingId(
+          warehouse.warehouseId,
         )
+
+        try {
+          await deactivate(
+            warehouse.warehouseId,
+          )
+        } finally {
+          setDeactivatingId(null)
+        }
       },
     })
   }
 
-  const columns: ColumnsType<Warehouse> = [
-    {
-      title: 'Warehouse',
-      dataIndex: 'name',
-      key: 'name',
-      sorter: (a, b) =>
-        a.name.localeCompare(b.name),
-      render: (name: string) => (
-        <Text strong>{name}</Text>
-      ),
-    },
-    {
-      title: 'Code',
-      dataIndex: 'code',
-      key: 'code',
-    },
-    {
-      title: 'Address',
-      dataIndex: 'address',
-      key: 'address',
-    },
-    {
-      title: 'Description',
-      dataIndex: 'description',
-      key: 'description',
-      render: (
-        description: string,
-      ) => description || '—',
-    },
-    {
-      title: 'Status',
-      dataIndex: 'status',
-      key: 'status',
-      align: 'center',
-      render: (
-        status: Warehouse['status'],
-      ) =>
-        status === 'Active' ? (
-          <Tag color="green">
-            Active
-          </Tag>
-        ) : (
-          <Tag>Inactive</Tag>
-        ),
-    },
-    {
-      title: 'Actions',
-      key: 'actions',
-      align: 'right',
-      fixed: 'right',
-      render: (_, warehouse) => (
-        <Space size="small">
-          <Button
-            type="text"
-            icon={<EditOutlined />}
-            onClick={() =>
-              openEditModal(warehouse)
-            }
-          />
 
-          <Button
-            type="text"
-            danger
-            icon={<DeleteOutlined />}
-            onClick={() =>
-              handleDelete(warehouse)
-            }
-          />
-        </Space>
+  // ==================================================
+  // Activate
+  // ==================================================
+
+  function handleActivateWarehouse(
+    warehouse: WarehouseResponse,
+  ) {
+    Modal.confirm({
+      title: t(
+        'warehouse.activateTitle',
       ),
-    },
-  ]
+
+      content: (
+        <>
+          {t(
+            'warehouse.activateMessage',
+          )}{' '}
+          <strong>
+            {warehouse.name}
+          </strong>
+          ?
+        </>
+      ),
+
+      okText: t(
+        'warehouse.activate',
+      ),
+
+      cancelText: t(
+        'common.cancel',
+      ),
+
+      onOk: async () => {
+        setActivatingId(
+          warehouse.warehouseId,
+        )
+
+        try {
+          await activate(
+            warehouse.warehouseId,
+          )
+        } finally {
+          setActivatingId(null)
+        }
+      },
+    })
+  }
+
+
+  // ==================================================
+  // Render
+  // ==================================================
 
   return (
     <div>
-      {/* Page heading */}
+
+      {/* ================================================
+          Page Header
+          ================================================ */}
+
       <div>
         <Title
           level={2}
@@ -308,23 +296,63 @@ export default function WarehousePage() {
             color: '#263238',
           }}
         >
-          Warehouses
+          {t('warehouse.title')}
         </Title>
 
         <Text type="secondary">
-          Manage warehouses and storage
-          facilities.
+          {t(
+            'warehouse.description',
+          )}
         </Text>
       </div>
 
-      {/* Warehouse table */}
+
+      {/* ================================================
+          Error
+          ================================================ */}
+
+      {error && (
+        <Alert
+          type="error"
+          showIcon
+          message={t(
+            'warehouse.loadError',
+          )}
+          description={error}
+          action={
+            <Button
+              size="small"
+              onClick={() =>
+                loadWarehouses()
+              }
+            >
+              {t(
+                'common.refresh',
+              )}
+            </Button>
+          }
+          style={{
+            marginTop: 24,
+          }}
+        />
+      )}
+
+
+      {/* ================================================
+          Warehouse Table Card
+          ================================================ */}
+
       <Card
         style={{
           marginTop: 24,
           background: '#f7f8fa',
         }}
       >
-        {/* Toolbar */}
+
+        {/* ================================================
+            Toolbar
+            ================================================ */}
+
         <Row
           gutter={[12, 12]}
           align="middle"
@@ -333,60 +361,18 @@ export default function WarehousePage() {
             marginBottom: 20,
           }}
         >
-          <Col
-            xs={24}
-            lg={18}
-          >
-            <Row gutter={[8, 8]}>
-              <Col
-                xs={24}
-                sm={16}
-                md={12}
-              >
-                <Input
-                  placeholder="Search warehouses..."
-                  prefix={
-                    <SearchOutlined />
-                  }
-                  value={searchText}
-                  onChange={(event) =>
-                    setSearchText(
-                      event.target.value,
-                    )
-                  }
-                  allowClear
-                />
-              </Col>
 
-              <Col
-                xs={24}
-                sm={8}
-                md={6}
-              >
-                <Select
-                  placeholder="Status"
-                  value={statusFilter}
-                  onChange={
-                    setStatusFilter
-                  }
-                  allowClear
-                  style={{
-                    width: '100%',
-                  }}
-                  options={[
-                    {
-                      label: 'Active',
-                      value: 'Active',
-                    },
-                    {
-                      label: 'Inactive',
-                      value: 'Inactive',
-                    },
-                  ]}
-                />
-              </Col>
-            </Row>
+          <Col xs={24} lg={18}>
+            <WarehouseFilters
+              search={search}
+              status={status}
+              onSearch={handleSearch}
+              onStatusChange={
+                handleStatusChange
+              }
+            />
           </Col>
+
 
           <Col
             xs={24}
@@ -395,146 +381,253 @@ export default function WarehousePage() {
               textAlign: 'right',
             }}
           >
-            <Button
-              type="primary"
-              icon={<PlusOutlined />}
-              onClick={
-                openCreateModal
-              }
+
+            <Row
+              gutter={[8, 8]}
+              justify="end"
             >
-              Add Warehouse
-            </Button>
+
+              {/* Refresh - Everyone */}
+
+              <Col>
+                <Button
+                  icon={
+                    <ReloadOutlined />
+                  }
+                  onClick={() =>
+                    loadWarehouses()
+                  }
+                  loading={loading}
+                >
+                  {t(
+                    'common.refresh',
+                  )}
+                </Button>
+              </Col>
+
+
+              {/* Add Warehouse - Admin Only */}
+
+              {isAdmin && (
+                <Col>
+                  <Button
+                    type="primary"
+                    icon={
+                      <PlusOutlined />
+                    }
+                    onClick={
+                      openCreateModal
+                    }
+                  >
+                    {t(
+                      'warehouse.addWarehouse',
+                    )}
+                  </Button>
+                </Col>
+              )}
+
+            </Row>
           </Col>
+
         </Row>
 
-        {/* Table */}
-        <Table
-          rowKey="id"
-          columns={columns}
-          dataSource={
-            filteredWarehouses
+
+        {/* ================================================
+            Warehouse Table
+            ================================================ */}
+
+        <WarehouseTable
+          warehouses={warehouses}
+          loading={loading}
+          total={total}
+          page={page}
+          pageSize={pageSize}
+
+          onPageChange={
+            handlePageChange
           }
-          pagination={{
-            pageSize: 10,
-            showSizeChanger: true,
-            showTotal: (total) =>
-              `Total ${total} warehouses`,
-          }}
-          scroll={{
-            x: 900,
-          }}
+
+          onSortChange={
+            handleSortChange
+          }
+
+          onView={
+            handleViewWarehouse
+          }
+
+          /*
+           * Admin only
+           */
+          onEdit={
+            isAdmin
+              ? openEditModal
+              : undefined
+          }
+
+          onActivate={
+            isAdmin
+              ? handleActivateWarehouse
+              : undefined
+          }
+
+          onDeactivate={
+            isAdmin
+              ? handleDeactivateWarehouse
+              : undefined
+          }
+
+          activatingId={
+            activatingId
+          }
+
+          deactivatingId={
+            deactivatingId
+          }
         />
+
       </Card>
 
-      {/* Create / Edit modal */}
+
+      {/* ================================================
+          Create / Edit Modal
+          Admin Only
+          ================================================ */}
+
+      {isAdmin && (
+        <WarehouseFormModal
+          open={formOpen}
+          editingWarehouse={
+            editingWarehouse
+          }
+          submitting={submitting}
+          onCancel={
+            closeFormModal
+          }
+          onSubmit={handleSubmit}
+        />
+      )}
+
+
+      {/* ================================================
+          View Warehouse Modal
+          Everyone
+          ================================================ */}
+
       <Modal
-        title={
-          editingWarehouse
-            ? 'Edit Warehouse'
-            : 'Add Warehouse'
+        title={t(
+          'warehouse.details',
+        )}
+
+        open={
+          viewingWarehouse !== null
         }
-        open={modalOpen}
-        onCancel={closeModal}
-        onOk={handleSubmit}
-        okText={
-          editingWarehouse
-            ? 'Update'
-            : 'Create'
+
+        onCancel={
+          closeViewModal
         }
+
+        footer={null}
+
         destroyOnHidden
       >
-        <Form
-          form={form}
-          layout="vertical"
-          style={{
-            marginTop: 24,
-          }}
-        >
-          <Form.Item
-            label="Warehouse Name"
-            name="name"
-            rules={[
-              {
-                required: true,
-                message:
-                  'Please enter the warehouse name',
-              },
-            ]}
-          >
-            <Input
-              placeholder="e.g. Main Warehouse"
-            />
-          </Form.Item>
 
-          <Form.Item
-            label="Warehouse Code"
-            name="code"
-            rules={[
-              {
-                required: true,
-                message:
-                  'Please enter the warehouse code',
-              },
-            ]}
+        {viewingWarehouse && (
+          <Descriptions
+            bordered
+            column={1}
+            size="middle"
           >
-            <Input
-              placeholder="e.g. WH-001"
-            />
-          </Form.Item>
 
-          <Form.Item
-            label="Address"
-            name="address"
-            rules={[
+            <Descriptions.Item label="ID">
               {
-                required: true,
-                message:
-                  'Please enter the warehouse address',
-              },
-            ]}
-          >
-            <Input.TextArea
-              rows={2}
-              placeholder="Enter warehouse address"
-            />
-          </Form.Item>
+                viewingWarehouse.warehouseId
+              }
+            </Descriptions.Item>
 
-          <Form.Item
-            label="Description"
-            name="description"
-          >
-            <Input.TextArea
-              rows={3}
-              placeholder="Enter warehouse description"
-            />
-          </Form.Item>
-
-          <Form.Item
-            label="Status"
-            name="status"
-            rules={[
+            <Descriptions.Item
+              label={t(
+                'warehouse.code',
+              )}
+            >
               {
-                required: true,
-                message:
-                  'Please select the status',
-              },
-            ]}
-          >
-            <Select
-              options={[
-                {
-                  label: 'Active',
-                  value: 'Active',
-                },
-                {
-                  label: 'Inactive',
-                  value: 'Inactive',
-                },
-              ]}
-            />
-          </Form.Item>
-        </Form>
+                viewingWarehouse.code
+              }
+            </Descriptions.Item>
+
+            <Descriptions.Item
+              label={t(
+                'warehouse.name',
+              )}
+            >
+              {
+                viewingWarehouse.name
+              }
+            </Descriptions.Item>
+
+            <Descriptions.Item
+              label={t(
+                'warehouse.address',
+              )}
+            >
+              {
+                viewingWarehouse.address ||
+                '-'
+              }
+            </Descriptions.Item>
+
+            <Descriptions.Item
+              label={t(
+                'warehouse.city',
+              )}
+            >
+              {
+                viewingWarehouse.city ||
+                '-'
+              }
+            </Descriptions.Item>
+
+            <Descriptions.Item
+              label={t(
+                'warehouse.phoneNumber',
+              )}
+            >
+              {
+                viewingWarehouse.phoneNumber ||
+                '-'
+              }
+            </Descriptions.Item>
+
+            <Descriptions.Item
+              label={t(
+                'warehouse.email',
+              )}
+            >
+              {
+                viewingWarehouse.email ||
+                '-'
+              }
+            </Descriptions.Item>
+
+            <Descriptions.Item
+              label={t(
+                'common.status',
+              )}
+            >
+              {viewingWarehouse.status ===
+              'ACTIVE'
+                ? t(
+                    'warehouse.active',
+                  )
+                : t(
+                    'warehouse.inactive',
+                  )}
+            </Descriptions.Item>
+
+          </Descriptions>
+        )}
+
       </Modal>
+
     </div>
   )
 }

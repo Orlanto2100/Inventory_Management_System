@@ -1,17 +1,13 @@
 package com.percy.inventory.Location.dto;
 
-import com.percy.inventory.Warehouse.Warehouse;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
+import com.percy.inventory.Location.LocationStatus;
+import com.percy.inventory.Location.LocationType;
 
-@Getter
-@Setter
-@AllArgsConstructor
-public class LocationResponse {
-    private Long LocationId;
-    private String name;
-    private String code;
-    private String type;
-    private Warehouse warehouse;
-}
+public record LocationResponse(
+        Long locationId,
+        String name,
+        String code,
+        LocationType type,
+        LocationStatus status,
+        Long warehouseId
+) {}

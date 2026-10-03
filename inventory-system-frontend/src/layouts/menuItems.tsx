@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react'
+
 import {
   AppstoreOutlined,
   DashboardOutlined,
@@ -28,7 +30,7 @@ export type Role =
 export interface MenuItem {
   key: string
   label: string
-  icon?: React.ReactNode
+  icon?: ReactNode
   roles?: Role[]
 }
 
@@ -39,6 +41,17 @@ export interface MenuSection extends MenuItem {
 export type SidebarMenuItem =
   | MenuItem
   | MenuSection
+
+// =====================================================
+// All Company Roles
+// =====================================================
+
+const allCompanyRoles: Role[] = [
+  'ADMIN',
+  'WAREHOUSE_STAFF',
+  'PURCHASING_STAFF',
+  'SALES_STAFF',
+]
 
 // =====================================================
 // Navigation
@@ -54,12 +67,7 @@ export const menuItems: SidebarMenuItem[] = [
     key: '/',
     label: 'navigation.dashboard',
     icon: <DashboardOutlined />,
-    roles: [
-      'ADMIN',
-      'WAREHOUSE_STAFF',
-      'PURCHASING_STAFF',
-      'SALES_STAFF',
-    ],
+    roles: allCompanyRoles,
   },
 
   // ===================================================
@@ -78,11 +86,9 @@ export const menuItems: SidebarMenuItem[] = [
       {
         key: '/products',
         label: 'navigation.products',
-        roles: [
-          'ADMIN',
-          'WAREHOUSE_STAFF',
-        ],
+        roles: allCompanyRoles,
       },
+
       {
         key: '/inventory',
         label: 'navigation.inventory',
@@ -91,6 +97,7 @@ export const menuItems: SidebarMenuItem[] = [
           'WAREHOUSE_STAFF',
         ],
       },
+
       {
         key: '/warehouses',
         label: 'navigation.warehouses',
@@ -100,6 +107,7 @@ export const menuItems: SidebarMenuItem[] = [
           'WAREHOUSE_STAFF',
         ],
       },
+
       {
         key: '/locations',
         label: 'navigation.locations',
@@ -110,6 +118,18 @@ export const menuItems: SidebarMenuItem[] = [
         ],
       },
     ],
+  },
+
+  // ===================================================
+  // Purchase Requests
+  // All company employees
+  // ===================================================
+
+  {
+    key: '/purchase-requests',
+    label: 'navigation.purchaseRequests',
+    icon: <FileTextOutlined />,
+    roles: allCompanyRoles,
   },
 
   // ===================================================
@@ -134,6 +154,7 @@ export const menuItems: SidebarMenuItem[] = [
           'SALES_STAFF',
         ],
       },
+
       {
         key: '/customer-quotations',
         label: 'navigation.customerQuotations',
@@ -143,6 +164,7 @@ export const menuItems: SidebarMenuItem[] = [
           'SALES_STAFF',
         ],
       },
+
       {
         key: '/sales-orders',
         label: 'navigation.salesOrders',
@@ -152,6 +174,7 @@ export const menuItems: SidebarMenuItem[] = [
           'SALES_STAFF',
         ],
       },
+
       {
         key: '/deliveries',
         label: 'navigation.deliveries',
@@ -161,6 +184,7 @@ export const menuItems: SidebarMenuItem[] = [
           'SALES_STAFF',
         ],
       },
+
       {
         key: '/customer-invoices',
         label: 'navigation.customerInvoices',
@@ -195,15 +219,7 @@ export const menuItems: SidebarMenuItem[] = [
           'PURCHASING_STAFF',
         ],
       },
-      {
-        key: '/purchase-requests',
-        label: 'navigation.purchaseRequests',
-        icon: <FileTextOutlined />,
-        roles: [
-          'ADMIN',
-          'PURCHASING_STAFF',
-        ],
-      },
+
       {
         key: '/rfqs',
         label: 'navigation.rfqs',
@@ -213,6 +229,7 @@ export const menuItems: SidebarMenuItem[] = [
           'PURCHASING_STAFF',
         ],
       },
+
       {
         key: '/vendor-quotations',
         label: 'navigation.vendorQuotations',
@@ -222,6 +239,7 @@ export const menuItems: SidebarMenuItem[] = [
           'PURCHASING_STAFF',
         ],
       },
+
       {
         key: '/purchase-orders',
         label: 'navigation.purchaseOrders',
@@ -231,6 +249,7 @@ export const menuItems: SidebarMenuItem[] = [
           'PURCHASING_STAFF',
         ],
       },
+
       {
         key: '/receipts',
         label: 'navigation.receipts',
@@ -240,6 +259,7 @@ export const menuItems: SidebarMenuItem[] = [
           'PURCHASING_STAFF',
         ],
       },
+
       {
         key: '/vendor-invoices',
         label: 'navigation.vendorInvoices',
@@ -273,6 +293,7 @@ export const menuItems: SidebarMenuItem[] = [
           'WAREHOUSE_STAFF',
         ],
       },
+
       {
         key: '/pickings',
         label: 'navigation.pickings',
@@ -281,6 +302,7 @@ export const menuItems: SidebarMenuItem[] = [
           'WAREHOUSE_STAFF',
         ],
       },
+
       {
         key: '/stock-movements',
         label: 'navigation.stockMovements',
@@ -300,21 +322,14 @@ export const menuItems: SidebarMenuItem[] = [
     key: 'reports',
     label: 'navigation.reports',
     icon: <FileTextOutlined />,
-    roles: [
-      'ADMIN',
-      'WAREHOUSE_STAFF',
-      'PURCHASING_STAFF',
-      'SALES_STAFF',
-    ],
+    roles: allCompanyRoles,
     children: [
       {
         key: '/reports/inventory',
         label: 'navigation.inventoryReports',
-        roles: [
-          'ADMIN',
-          'WAREHOUSE_STAFF',
-        ],
+        roles: allCompanyRoles,
       },
+
       {
         key: '/reports/sales',
         label: 'navigation.salesReports',
@@ -323,6 +338,7 @@ export const menuItems: SidebarMenuItem[] = [
           'SALES_STAFF',
         ],
       },
+
       {
         key: '/reports/purchasing',
         label: 'navigation.purchasingReports',
@@ -331,6 +347,7 @@ export const menuItems: SidebarMenuItem[] = [
           'PURCHASING_STAFF',
         ],
       },
+
       {
         key: '/reports/operations',
         label: 'navigation.operationsReports',
@@ -361,6 +378,7 @@ export const menuItems: SidebarMenuItem[] = [
           'ADMIN',
         ],
       },
+
       {
         key: '/roles-permissions',
         label: 'navigation.rolesPermissions',
@@ -368,6 +386,7 @@ export const menuItems: SidebarMenuItem[] = [
           'ADMIN',
         ],
       },
+
       {
         key: '/audit-log',
         label: 'navigation.auditLog',
@@ -375,6 +394,7 @@ export const menuItems: SidebarMenuItem[] = [
           'ADMIN',
         ],
       },
+
       {
         key: '/system-settings',
         label: 'navigation.systemSettings',
@@ -396,22 +416,40 @@ export function getMenuItemsForRole(
 
   return menuItems
     .filter((item) => {
-      return item.roles?.includes(role)
+      if (!item.roles) {
+        return true
+      }
+
+      return item.roles.includes(role)
     })
     .map((item) => {
 
+      // -------------------------------------------------
       // Normal menu item
+      // -------------------------------------------------
+
       if (!('children' in item)) {
         return item
       }
 
+      // -------------------------------------------------
       // Filter children
+      // -------------------------------------------------
+
       const children = item.children.filter(
-        (child) =>
-          child.roles?.includes(role),
+        (child) => {
+          if (!child.roles) {
+            return true
+          }
+
+          return child.roles.includes(role)
+        },
       )
 
+      // -------------------------------------------------
       // Remove empty sections
+      // -------------------------------------------------
+
       if (children.length === 0) {
         return null
       }
@@ -434,6 +472,7 @@ export function getMenuItemsForRole(
 // =====================================================
 
 export const userMenuItems = [
+
   {
     key: 'profile',
     label: 'common.profile',
@@ -456,4 +495,5 @@ export const userMenuItems = [
     icon: <LogoutOutlined />,
     danger: true,
   },
+
 ]

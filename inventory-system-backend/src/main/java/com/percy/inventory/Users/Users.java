@@ -4,6 +4,7 @@ import com.percy.inventory.BaseEntity;
 import com.percy.inventory.PurchaseOrder.PurchaseOrder;
 import com.percy.inventory.SalesOrder.SalesOrder;
 import com.percy.inventory.StockMovement.StockMovement;
+import com.percy.inventory.Warehouse.Warehouse;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -45,6 +46,14 @@ public class Users extends BaseEntity implements UserDetails {
     @Column(length = 30)
     private Role role;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private UserStatus status = UserStatus.ACTIVE;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "warehouse_id")
+    private Warehouse warehouse;
+
     @OneToMany(mappedBy = "createdBy", fetch = FetchType.LAZY)
     private final List<PurchaseOrder> purchaseOrders = new ArrayList<>();
 
@@ -68,6 +77,7 @@ public class Users extends BaseEntity implements UserDetails {
         this.email = email;
         this.accountType = accountType;
         this.role = role;
+        this.status = UserStatus.ACTIVE;
     }
 
     public void updateProfile(
@@ -104,6 +114,18 @@ public class Users extends BaseEntity implements UserDetails {
         }
     }
 
+    public void assignWarehouse(Warehouse warehouse) {
+        this.warehouse = warehouse;
+    }
+
+    public void activate() {
+        this.status = UserStatus.ACTIVE;
+    }
+
+    public void deactivate() {
+        this.status = UserStatus.INACTIVE;
+    }
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         if (role == null) {
@@ -134,6 +156,6 @@ public class Users extends BaseEntity implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return status == UserStatus.ACTIVE;
     }
 }

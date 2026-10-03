@@ -15,7 +15,11 @@ public class UserMapper {
                 user.getFullName(),
                 user.getEmail(),
                 user.getAccountType(),
-                user.getRole()
+                user.getRole(),
+                user.getWarehouse() != null
+                        ? user.getWarehouse().getWarehouseId()
+                        : null,
+                user.getStatus()
         );
     }
 

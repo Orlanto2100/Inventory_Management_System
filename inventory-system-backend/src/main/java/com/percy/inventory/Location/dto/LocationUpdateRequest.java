@@ -1,12 +1,14 @@
 package com.percy.inventory.Location.dto;
 
-import lombok.Getter;
-import lombok.Setter;
+import com.percy.inventory.Location.LocationType;
+import jakarta.validation.constraints.Size;
 
-@Getter
-@Setter
-public class UpdateLocationRequest {
-    private String name;
-    private String code;
-    private String type;
-}
+public record LocationUpdateRequest(
+        @Size(max = 100)
+        String name,
+
+        @Size(max = 50)
+        String code,
+
+        LocationType type
+) {}

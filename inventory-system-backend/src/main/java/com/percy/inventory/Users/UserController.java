@@ -69,14 +69,17 @@ public class UserController {
         );
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteUserById(
+    @PatchMapping("/{id}/deactivate")
+    public UserResponse deactivateUser(
             @PathVariable @Positive Long id
     ) {
-        userService.deleteUserById(id);
+        return userService.deactivateUser(id);
+    }
 
-        return ResponseEntity
-                .noContent()
-                .build();
+    @PatchMapping("/{id}/activate")
+    public UserResponse activateUser(
+            @PathVariable @Positive Long id
+    ) {
+        return userService.activateUser(id);
     }
 }

@@ -1,15 +1,15 @@
 package com.percy.inventory.Location;
 
-import com.percy.inventory.Location.dto.CreateLocationRequest;
+import com.percy.inventory.Location.dto.LocationCreateRequest;
 import com.percy.inventory.Location.dto.LocationResponse;
-import com.percy.inventory.Location.dto.UpdateLocationRequest;
+import com.percy.inventory.Location.dto.LocationUpdateRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/locations")
@@ -19,43 +19,67 @@ public class LocationController {
     private final LocationService locationService;
 
     @PostMapping
-    public ResponseEntity<LocationResponse> createLocation(
-            @Valid @RequestBody CreateLocationRequest request) {
-
-        LocationResponse response = locationService.createLocation(request);
+    public ResponseEntity<LocationResponse> create(
+            @Valid @RequestBody LocationCreateRequest request
+    ) {
+        LocationResponse response = locationService.create(request);
 
         return ResponseEntity
-                .status(HttpStatus.CREATED)
+                .status(201)
                 .body(response);
     }
 
-    @GetMapping("/{id}")
-    public LocationResponse getLocationById(@PathVariable Long id) {
-        return locationService.getLocationById(id);
-    }
-
-    @GetMapping("/code/{code}")
-    public LocationResponse getLocationByCode(@PathVariable String code) {
-        return locationService.getLocationByCode(code);
+    @GetMapping("/{locationId}")
+    public ResponseEntity<LocationResponse> getById(
+            @PathVariable Long locationId
+    ) {
+        return ResponseEntity.ok(
+                locationService.getById(locationId)
+        );
     }
 
     @GetMapping
-    public List<LocationResponse> getLocations() {
-        return locationService.getAllLocations();
+    public ResponseEntity<Page<LocationResponse>> search(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) LocationType type,
+            @RequestParam(required = false) LocationStatus status,
+            @RequestParam(required = false) Long warehouseId,
+            @PageableDefault(size = 20) Pageable pageable
+    ) {
+        return ResponseEntity.ok(
+                locationService.search(
+                        search,
+                        type,
+                        status,
+                        warehouseId,
+                        pageable
+                )
+        );
     }
 
-    @PatchMapping("/{id}")
-    public LocationResponse updateLocation(
-            @PathVariable Long id,
-            @Valid @RequestBody UpdateLocationRequest request) {
-
-        return locationService.updateLocation(id, request);
+    @PatchMapping("/{locationId}")
+    public ResponseEntity<LocationResponse> update(
+            @PathVariable Long locationId,
+            @Valid @RequestBody LocationUpdateRequest request
+    ) {
+        return ResponseEntity.ok(
+                locationService.update(locationId, request)
+        );
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteLocationById(@PathVariable Long id) {
-        locationService.deleteLocation(id);
+    @PatchMapping("/{locationId}/deactivate")
+    public ResponseEntity<Void> deactivate(
+            @PathVariable Long locationId
+    ) {
+        locationService.deactivate(locationId);
+        return ResponseEntity.noContent().build();
+    }
 
+    @PatchMapping("/{locationId}/activate")
+    public ResponseEntity<Void> activate(
+            @PathVariable Long locationId
+    ) {
+        locationService.activate(locationId);
         return ResponseEntity.noContent().build();
     }
 }

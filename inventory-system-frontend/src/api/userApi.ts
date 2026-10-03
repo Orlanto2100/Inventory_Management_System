@@ -17,10 +17,24 @@ export function createUser(
   })
 }
 
-export function deleteUser(
+export function deactivateUser(
   id: number,
 ): Promise<void> {
-  return apiRequest<void>(`/users/${id}`, {
-    method: 'DELETE',
-  })
+  return apiRequest<void>(
+    `/users/${id}/deactivate`,
+    {
+      method: 'PATCH',
+    },
+  )
+}
+
+export function activateUser(
+  id: number,
+): Promise<void> {
+  return apiRequest<void>(
+    `/users/${id}/activate`,
+    {
+      method: 'PATCH',
+    },
+  )
 }

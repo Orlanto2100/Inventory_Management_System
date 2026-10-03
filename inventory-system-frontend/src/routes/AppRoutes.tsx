@@ -167,6 +167,7 @@ export default function AppRoutes() {
 
             {/* ==================================================
                 Products
+                All company employees can view products
                 ================================================== */}
 
             <Route
@@ -174,9 +175,9 @@ export default function AppRoutes() {
                 <RoleRoute
                   allowedRoles={[
                     'ADMIN',
+                    'WAREHOUSE_STAFF',
                     'PURCHASING_STAFF',
                     'SALES_STAFF',
-                    'WAREHOUSE_STAFF',
                   ]}
                 />
               }
@@ -190,6 +191,7 @@ export default function AppRoutes() {
 
             {/* ==================================================
                 Warehouse
+                Warehouse Staff + Admin
                 ================================================== */}
 
             <Route
@@ -220,7 +222,32 @@ export default function AppRoutes() {
 
 
             {/* ==================================================
+                Purchase Requests
+                All company employees
+                ================================================== */}
+
+            <Route
+              element={
+                <RoleRoute
+                  allowedRoles={[
+                    'ADMIN',
+                    'WAREHOUSE_STAFF',
+                    'PURCHASING_STAFF',
+                    'SALES_STAFF',
+                  ]}
+                />
+              }
+            >
+              <Route
+                path="/purchase-requests"
+                element={<PurchaseRequestPage />}
+              />
+            </Route>
+
+
+            {/* ==================================================
                 Warehouse Operations
+                Warehouse Staff + Admin
                 ================================================== */}
 
             <Route
@@ -234,11 +261,6 @@ export default function AppRoutes() {
               }
             >
               <Route
-                path="/stock-movements"
-                element={<StockMovementPage />}
-              />
-
-              <Route
                 path="/putaways"
                 element={<PutawayPage />}
               />
@@ -247,11 +269,17 @@ export default function AppRoutes() {
                 path="/pickings"
                 element={<PickingPage />}
               />
+
+              <Route
+                path="/stock-movements"
+                element={<StockMovementPage />}
+              />
             </Route>
 
 
             {/* ==================================================
                 Purchasing
+                Purchasing Staff + Admin
                 ================================================== */}
 
             <Route
@@ -267,11 +295,6 @@ export default function AppRoutes() {
               <Route
                 path="/vendors"
                 element={<VendorPage />}
-              />
-
-              <Route
-                path="/purchase-requests"
-                element={<PurchaseRequestPage />}
               />
 
               <Route
@@ -303,6 +326,7 @@ export default function AppRoutes() {
 
             {/* ==================================================
                 Sales
+                Sales Staff + Admin
                 ================================================== */}
 
             <Route
@@ -344,6 +368,7 @@ export default function AppRoutes() {
 
             {/* ==================================================
                 Inventory Reports
+                All company employees
                 ================================================== */}
 
             <Route
@@ -352,6 +377,8 @@ export default function AppRoutes() {
                   allowedRoles={[
                     'ADMIN',
                     'WAREHOUSE_STAFF',
+                    'PURCHASING_STAFF',
+                    'SALES_STAFF',
                   ]}
                 />
               }
@@ -365,6 +392,7 @@ export default function AppRoutes() {
 
             {/* ==================================================
                 Sales Reports
+                Sales Staff + Admin
                 ================================================== */}
 
             <Route
@@ -386,6 +414,7 @@ export default function AppRoutes() {
 
             {/* ==================================================
                 Purchasing Reports
+                Purchasing Staff + Admin
                 ================================================== */}
 
             <Route
@@ -407,6 +436,7 @@ export default function AppRoutes() {
 
             {/* ==================================================
                 Operations Reports
+                Warehouse Staff + Admin
                 ================================================== */}
 
             <Route
@@ -428,6 +458,7 @@ export default function AppRoutes() {
 
             {/* ==================================================
                 Administration
+                Admin only
                 ================================================== */}
 
             <Route

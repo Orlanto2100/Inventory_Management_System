@@ -5,11 +5,14 @@ import {
   Select,
 } from 'antd'
 import { useEffect } from 'react'
+
 import type {
   AccountType,
   CreateUserRequest,
   Role,
 } from '../types/user'
+
+import { useWarehouses } from '../../../warehouse/warehouses/hooks/useWarehouses'
 
 interface UserFormModalProps {
   open: boolean
@@ -26,11 +29,36 @@ export default function UserFormModal({
   onCancel,
   onSubmit,
 }: UserFormModalProps) {
+
   const [form] =
     Form.useForm<CreateUserRequest>()
 
   const accountType =
-    Form.useWatch('accountType', form)
+    Form.useWatch(
+      'accountType',
+      form,
+    )
+
+  const role =
+    Form.useWatch(
+      'role',
+      form,
+    )
+
+
+  // ==================================================
+  // Warehouses
+  // ==================================================
+
+  const {
+    warehouses,
+    loading: warehousesLoading,
+  } = useWarehouses()
+
+
+  // ==================================================
+  // Reset
+  // ==================================================
 
   useEffect(() => {
     if (!open) {
@@ -38,19 +66,32 @@ export default function UserFormModal({
     }
   }, [open, form])
 
+
+  // ==================================================
+  // Submit
+  // ==================================================
+
   const handleFinish = async (
     values: CreateUserRequest,
   ) => {
+
     await onSubmit({
       ...values,
+
       role:
         values.accountType === 'COMPANY'
           ? values.role
+          : null,
+
+      warehouseId:
+        values.role === 'WAREHOUSE_STAFF'
+          ? values.warehouseId
           : null,
     })
 
     form.resetFields()
   }
+
 
   return (
     <Modal
@@ -61,18 +102,25 @@ export default function UserFormModal({
       confirmLoading={loading}
       destroyOnHidden
     >
+
       <Form
         form={form}
         layout="vertical"
         onFinish={handleFinish}
       >
+
+        {/* ==========================================
+            Username
+            ========================================== */}
+
         <Form.Item
           label="Username"
           name="username"
           rules={[
             {
               required: true,
-              message: 'Username is required',
+              message:
+                'Username is required',
             },
             {
               max: 50,
@@ -84,13 +132,19 @@ export default function UserFormModal({
           <Input />
         </Form.Item>
 
+
+        {/* ==========================================
+            Password
+            ========================================== */}
+
         <Form.Item
           label="Password"
           name="password"
           rules={[
             {
               required: true,
-              message: 'Password is required',
+              message:
+                'Password is required',
             },
             {
               min: 8,
@@ -102,13 +156,19 @@ export default function UserFormModal({
           <Input.Password />
         </Form.Item>
 
+
+        {/* ==========================================
+            Full Name
+            ========================================== */}
+
         <Form.Item
           label="Full Name"
           name="fullName"
           rules={[
             {
               required: true,
-              message: 'Full name is required',
+              message:
+                'Full name is required',
             },
             {
               max: 100,
@@ -120,18 +180,29 @@ export default function UserFormModal({
           <Input />
         </Form.Item>
 
+
+        {/* ==========================================
+            Email
+            ========================================== */}
+
         <Form.Item
           label="Email"
           name="email"
           rules={[
             {
               type: 'email',
-              message: 'Invalid email format',
+              message:
+                'Invalid email format',
             },
           ]}
         >
           <Input />
         </Form.Item>
+
+
+        {/* ==========================================
+            Account Type
+            ========================================== */}
 
         <Form.Item
           label="Account Type"
@@ -161,6 +232,11 @@ export default function UserFormModal({
             ]}
           />
         </Form.Item>
+
+
+        {/* ==========================================
+            Role
+            ========================================== */}
 
         {accountType === 'COMPANY' && (
           <Form.Item
@@ -196,6 +272,51 @@ export default function UserFormModal({
             />
           </Form.Item>
         )}
+
+
+        {/* ==========================================
+            Assigned Warehouse
+            Warehouse Staff only
+            ========================================== */}
+
+        {accountType === 'COMPANY' &&
+          role === 'WAREHOUSE_STAFF' && (
+            <Form.Item
+              label="Assigned Warehouse"
+              name="warehouseId"
+              rules={[
+                {
+                  required: true,
+                  message:
+                    'Warehouse is required for warehouse staff',
+                },
+              ]}
+            >
+              <Select<number>
+                placeholder="Select warehouse"
+                loading={
+                  warehousesLoading
+                }
+
+                options={warehouses
+                  .filter(
+                    (warehouse) =>
+                      warehouse.status ===
+                      'ACTIVE',
+                  )
+                  .map(
+                    (warehouse) => ({
+                      label:
+                        `${warehouse.code} - ${warehouse.name}`,
+
+                      value:
+                        warehouse.warehouseId,
+                    }),
+                  )}
+              />
+            </Form.Item>
+          )}
+
       </Form>
     </Modal>
   )

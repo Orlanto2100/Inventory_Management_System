@@ -15,7 +15,7 @@ import {
   ReloadOutlined,
 } from '@ant-design/icons'
 
-import type { VendorResponse } from '../../../api/vendorApi'
+import type { VendorResponse } from '../../../../api/vendorApi'
 
 import VendorTable from '../components/VendorTable'
 import VendorFilters from '../components/VendorFilters'

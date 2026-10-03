@@ -1,17 +1,28 @@
-import { Button, Popconfirm, Table, Tag } from 'antd'
+import {
+  Button,
+  Popconfirm,
+  Space,
+  Table,
+  Tag,
+} from 'antd'
 import type { ColumnsType } from 'antd/es/table'
+
 import type { User } from '../types/user'
 
 interface UserTableProps {
   users: User[]
   loading: boolean
-  onDelete: (id: number) => void
+  onView: (user: User) => void
+  onDeactivate: (id: number) => Promise<void>
+  onActivate: (id: number) => Promise<void>
 }
 
 export default function UserTable({
   users,
   loading,
-  onDelete,
+  onView,
+  onDeactivate,
+  onActivate,
 }: UserTableProps) {
   const columns: ColumnsType<User> = [
     {
@@ -47,20 +58,69 @@ export default function UserTable({
         role ? <Tag>{role}</Tag> : '-',
     },
     {
+      title: 'Status',
+      dataIndex: 'status',
+      key: 'status',
+      render: (status) => (
+        <Tag
+          color={
+            status === 'ACTIVE'
+              ? 'green'
+              : 'default'
+          }
+        >
+          {status}
+        </Tag>
+      ),
+    },
+    {
       title: 'Actions',
       key: 'actions',
       render: (_, user) => (
-        <Popconfirm
-          title="Delete this user?"
-          description="This action cannot be undone."
-          onConfirm={() => onDelete(user.id)}
-          okText="Delete"
-          cancelText="Cancel"
-        >
-          <Button danger size="small">
-            Delete
+        <Space size="small">
+          <Button
+            size="small"
+            onClick={() => onView(user)}
+          >
+            View
           </Button>
-        </Popconfirm>
+
+          {user.status === 'ACTIVE' ? (
+            <Popconfirm
+              title="Deactivate this user?"
+              description="The user will no longer be able to log in."
+              onConfirm={() =>
+                onDeactivate(user.id)
+              }
+              okText="Deactivate"
+              cancelText="Cancel"
+            >
+              <Button
+                danger
+                size="small"
+              >
+                Deactivate
+              </Button>
+            </Popconfirm>
+          ) : (
+            <Popconfirm
+              title="Activate this user?"
+              description="The user will be able to log in again."
+              onConfirm={() =>
+                onActivate(user.id)
+              }
+              okText="Activate"
+              cancelText="Cancel"
+            >
+              <Button
+                type="primary"
+                size="small"
+              >
+                Activate
+              </Button>
+            </Popconfirm>
+          )}
+        </Space>
       ),
     },
   ]

@@ -3,6 +3,9 @@ package com.percy.inventory.Users;
 import com.percy.inventory.Users.dto.CreateUserRequest;
 import com.percy.inventory.Users.dto.UpdateUserProfileRequest;
 import com.percy.inventory.Users.dto.UserResponse;
+import com.percy.inventory.Warehouse.Warehouse;
+import com.percy.inventory.Warehouse.WarehouseRepository;
+import com.percy.inventory.Warehouse.WarehouseStatus;
 import com.percy.inventory.exception.DuplicateResourceException;
 import com.percy.inventory.exception.InvalidPasswordException;
 import com.percy.inventory.exception.ResourceNotFoundException;
@@ -17,12 +20,14 @@ import java.util.List;
 public class UserService {
 
     private final UsersRepository usersRepository;
+    private final WarehouseRepository warehouseRepository;
     private final PasswordEncoder passwordEncoder;
     private final UserMapper userMapper;
 
     public UserResponse createUser(CreateUserRequest request) {
         validateUsername(request.username());
         validateEmail(request.email());
+
         validateAccountTypeAndRole(
                 request.accountType(),
                 request.role()
@@ -33,6 +38,32 @@ public class UserService {
         user.changePassword(
                 passwordEncoder.encode(request.password())
         );
+
+        // Assign warehouse to warehouse staff
+        if (request.role() == Role.WAREHOUSE_STAFF) {
+
+            if (request.warehouseId() == null) {
+                throw new IllegalArgumentException(
+                        "Warehouse is required for warehouse staff"
+                );
+            }
+
+            Warehouse warehouse = warehouseRepository
+                    .findById(request.warehouseId())
+                    .orElseThrow(() ->
+                            new ResourceNotFoundException(
+                                    "Warehouse not found"
+                            )
+                    );
+
+            if (warehouse.getStatus() != WarehouseStatus.ACTIVE) {
+                throw new IllegalArgumentException(
+                        "Warehouse must be active"
+                );
+            }
+
+            user.assignWarehouse(warehouse);
+        }
 
         Users savedUser = usersRepository.save(user);
 
@@ -137,18 +168,47 @@ public class UserService {
         return userMapper.toResponse(updatedUser);
     }
 
-    public void deleteUserById(Long id) {
+    public UserResponse deactivateUser(Long id) {
         Users user = findUserById(id);
 
-        if (user.getRole() == Role.ADMIN &&
-                usersRepository.countByRole(Role.ADMIN) <= 1) {
-
+        if (user.getStatus() == UserStatus.INACTIVE) {
             throw new IllegalStateException(
-                    "The last admin cannot be deleted"
+                    "User is already inactive"
             );
         }
 
-        usersRepository.delete(user);
+        if (user.getRole() == Role.ADMIN &&
+                usersRepository.countByRoleAndStatus(
+                        Role.ADMIN,
+                        UserStatus.ACTIVE
+                ) <= 1) {
+
+            throw new IllegalStateException(
+                    "The last active admin cannot be deactivated"
+            );
+        }
+
+        user.deactivate();
+
+        Users updatedUser = usersRepository.save(user);
+
+        return userMapper.toResponse(updatedUser);
+    }
+
+    public UserResponse activateUser(Long id) {
+        Users user = findUserById(id);
+
+        if (user.getStatus() == UserStatus.ACTIVE) {
+            throw new IllegalStateException(
+                    "User is already active"
+            );
+        }
+
+        user.activate();
+
+        Users updatedUser = usersRepository.save(user);
+
+        return userMapper.toResponse(updatedUser);
     }
 
     private Users findUserById(Long id) {

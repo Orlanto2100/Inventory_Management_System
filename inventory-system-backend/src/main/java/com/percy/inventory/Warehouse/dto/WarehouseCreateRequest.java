@@ -1,14 +1,30 @@
 package com.percy.inventory.Warehouse.dto;
 
-import lombok.Getter;
-import lombok.Setter;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
-@Getter
-@Setter
-public class CreateWarehouseRequest {
-    private String code;
-    private String name;
-    private String city;
-    private String phoneNumber;
-    private String email;
+public record WarehouseCreateRequest(
+
+        @NotBlank
+        @Size(max = 50)
+        String code,
+
+        @NotBlank
+        @Size(max = 100)
+        String name,
+
+        @Size(max = 250)
+        String address,
+
+        @Size(max = 100)
+        String city,
+
+        @Size(max = 20)
+        String phoneNumber,
+
+        @Email
+        @Size(max = 254)
+        String email
+) {
 }

@@ -9,6 +9,10 @@ export type Role =
   | 'PURCHASING_STAFF'
   | 'SALES_STAFF'
 
+export type UserStatus =
+  | 'ACTIVE'
+  | 'INACTIVE'
+
 export interface User {
   id: number
   username: string
@@ -16,6 +20,8 @@ export interface User {
   email: string | null
   accountType: AccountType
   role: Role | null
+  warehouseId: number | null
+  status: UserStatus
 }
 
 export interface CreateUserRequest {
@@ -25,4 +31,5 @@ export interface CreateUserRequest {
   email?: string | null
   accountType: AccountType
   role?: Role | null
+  warehouseId?: number | null
 }

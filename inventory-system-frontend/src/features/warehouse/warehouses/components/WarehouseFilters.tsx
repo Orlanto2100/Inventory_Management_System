@@ -1,23 +1,23 @@
 import { Input, Select, Space } from 'antd'
 import { SearchOutlined } from '@ant-design/icons'
 
-import type { VendorStatus } from '../../../../api/vendorApi'
+import type { WarehouseStatus } from '../../../../api/warehouseApi'
 
-type VendorFiltersProps = {
+type WarehouseFiltersProps = {
   search: string
-  status: VendorStatus | undefined
+  status: WarehouseStatus | undefined
   onSearch: (value: string) => void
   onStatusChange: (
-    value: VendorStatus | undefined,
+    value: WarehouseStatus | undefined,
   ) => void
 }
 
-function VendorFilters({
+function WarehouseFilters({
   search,
   status,
   onSearch,
   onStatusChange,
-}: VendorFiltersProps) {
+}: WarehouseFiltersProps) {
   return (
     <Space
       wrap
@@ -27,7 +27,7 @@ function VendorFilters({
       <Input
         allowClear
         value={search}
-        placeholder="Search vendors"
+        placeholder="Search warehouses"
         prefix={<SearchOutlined />}
         onChange={(event) =>
           onSearch(event.target.value)
@@ -56,4 +56,4 @@ function VendorFilters({
   )
 }
 
-export default VendorFilters
+export default WarehouseFilters

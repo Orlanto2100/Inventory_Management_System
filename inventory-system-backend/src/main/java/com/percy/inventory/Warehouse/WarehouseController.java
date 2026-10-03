@@ -1,69 +1,85 @@
 package com.percy.inventory.Warehouse;
 
-import com.percy.inventory.Warehouse.dto.CreateWarehouseRequest;
-import com.percy.inventory.Warehouse.dto.UpdateWarehouseRequest;
+import com.percy.inventory.Warehouse.dto.WarehouseCreateRequest;
 import com.percy.inventory.Warehouse.dto.WarehouseResponse;
+import com.percy.inventory.Warehouse.dto.WarehouseUpdateRequest;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/warehouses")
 @RequiredArgsConstructor
-@Validated
 public class WarehouseController {
 
     private final WarehouseService warehouseService;
 
     @PostMapping
-    public ResponseEntity<WarehouseResponse> createWarehouse(
-            @Valid @RequestBody CreateWarehouseRequest request) {
-
-        WarehouseResponse response = warehouseService.createWarehouse(request);
+    public ResponseEntity<WarehouseResponse> create(
+            @Valid @RequestBody WarehouseCreateRequest request
+    ) {
+        WarehouseResponse response = warehouseService.create(request);
 
         return ResponseEntity
-                .status(HttpStatus.CREATED)
+                .status(201)
                 .body(response);
     }
 
-    @GetMapping("/{id}")
-    public WarehouseResponse getWarehouseById(
-            @PathVariable @Positive Long id) {
-
-        return warehouseService.getWarehouseById(id);
-    }
-
-    @GetMapping("/name/{name}")
-    public WarehouseResponse getWarehouseByName(
-            @PathVariable String name) {
-
-        return warehouseService.getWarehouseByName(name);
+    @GetMapping("/{warehouseId}")
+    public ResponseEntity<WarehouseResponse> getById(
+            @PathVariable Long warehouseId
+    ) {
+        return ResponseEntity.ok(
+                warehouseService.getById(warehouseId)
+        );
     }
 
     @GetMapping
-    public List<WarehouseResponse> getAllWarehouses() {
-        return warehouseService.getAllWarehouses();
+    public ResponseEntity<Page<WarehouseResponse>> search(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) WarehouseStatus status,
+            @PageableDefault(size = 20) Pageable pageable
+    ) {
+        return ResponseEntity.ok(
+                warehouseService.search(
+                        search,
+                        status,
+                        pageable
+                )
+        );
     }
 
-    @PatchMapping("/{id}")
-    public WarehouseResponse updateWarehouse(
-            @PathVariable @Positive Long id,
-            @Valid @RequestBody UpdateWarehouseRequest request) {
-
-        return warehouseService.updateWarehouseById(id, request);
+    @PatchMapping("/{warehouseId}")
+    public ResponseEntity<WarehouseResponse> update(
+            @PathVariable Long warehouseId,
+            @Valid @RequestBody WarehouseUpdateRequest request
+    ) {
+        return ResponseEntity.ok(
+                warehouseService.update(
+                        warehouseId,
+                        request
+                )
+        );
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteWarehouse(
-            @PathVariable @Positive Long id) {
+    @PatchMapping("/{warehouseId}/deactivate")
+    public ResponseEntity<Void> deactivate(
+            @PathVariable Long warehouseId
+    ) {
+        warehouseService.deactivate(warehouseId);
 
-        warehouseService.deleteWarehouseById(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{warehouseId}/activate")
+    public ResponseEntity<Void> activate(
+            @PathVariable Long warehouseId
+    ) {
+        warehouseService.activate(warehouseId);
 
         return ResponseEntity.noContent().build();
     }

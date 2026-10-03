@@ -1,14 +1,22 @@
 package com.percy.inventory.Location.dto;
 
-import com.percy.inventory.Warehouse.Warehouse;
-import lombok.Getter;
-import lombok.Setter;
+import com.percy.inventory.Location.LocationType;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
-@Getter
-@Setter
-public class CreateLocationRequest {
-    private String name;
-    private String code;
-    private String type;
-    private Warehouse warehouse;
-}
+public record LocationCreateRequest(
+        @NotBlank
+        @Size(max = 100)
+        String name,
+
+        @NotBlank
+        @Size(max = 50)
+        String code,
+
+        @NotNull
+        LocationType type,
+
+        @NotNull
+        Long warehouseId
+) {}

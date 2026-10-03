@@ -1,11 +1,25 @@
 package com.percy.inventory.Warehouse;
 
-import com.percy.inventory.Warehouse.dto.CreateWarehouseRequest;
-import com.percy.inventory.Warehouse.dto.UpdateWarehouseRequest;
+import com.percy.inventory.Warehouse.dto.WarehouseCreateRequest;
 import com.percy.inventory.Warehouse.dto.WarehouseResponse;
+import com.percy.inventory.Warehouse.dto.WarehouseUpdateRequest;
+import org.springframework.stereotype.Component;
 
+@Component
 public class WarehouseMapper {
-    public static WarehouseResponse toResponse(Warehouse warehouse) {
+
+    public Warehouse toEntity(WarehouseCreateRequest request) {
+        return new Warehouse(
+                request.code(),
+                request.name(),
+                request.address(),
+                request.city(),
+                request.phoneNumber(),
+                request.email()
+        );
+    }
+
+    public WarehouseResponse toResponse(Warehouse warehouse) {
         return new WarehouseResponse(
                 warehouse.getWarehouseId(),
                 warehouse.getCode(),
@@ -13,47 +27,21 @@ public class WarehouseMapper {
                 warehouse.getAddress(),
                 warehouse.getCity(),
                 warehouse.getPhoneNumber(),
-                warehouse.getEmail()
-        );
+                warehouse.getEmail(),
+                warehouse.getStatus().name()        );
     }
 
-    public static Warehouse toEntity(CreateWarehouseRequest request) {
-        Warehouse warehouse = new Warehouse();
-        warehouse.setCode(request.getCode());
-        warehouse.setName(request.getName());
-        warehouse.setCity(request.getCity());
-        warehouse.setPhoneNumber(request.getPhoneNumber());
-        warehouse.setEmail(request.getEmail());
-
-        return warehouse;
-    }
-
-    public static void updateEntity(
+    public void updateEntity(
             Warehouse warehouse,
-            UpdateWarehouseRequest request) {
-
-        if (request.getCode() != null) {
-            warehouse.setCode(request.getCode());
-        }
-
-        if (request.getName() != null) {
-            warehouse.setName(request.getName());
-        }
-
-        if (request.getAddress() != null) {
-            warehouse.setAddress(request.getAddress());
-        }
-
-        if (request.getCity() != null) {
-            warehouse.setCity(request.getCity());
-        }
-
-        if (request.getPhoneNumber() != null) {
-            warehouse.setPhoneNumber(request.getPhoneNumber());
-        }
-
-        if (request.getEmail() != null) {
-            warehouse.setEmail(request.getEmail());
-        }
+            WarehouseUpdateRequest request
+    ) {
+        warehouse.update(
+                request.code(),
+                request.name(),
+                request.address(),
+                request.city(),
+                request.phoneNumber(),
+                request.email()
+        );
     }
 }

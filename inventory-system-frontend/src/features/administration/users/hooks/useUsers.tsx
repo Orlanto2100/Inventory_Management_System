@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState } from 'react'
 import { message } from 'antd'
 import {
+  activateUser as activateUserApi,
   createUser,
-  deleteUser,
+  deactivateUser as deactivateUserApi,
   getUsers,
 } from '../../../../api/userApi'
 import type {
@@ -58,12 +59,12 @@ export function useUsers() {
     }
   }
 
-  const removeUser = async (id: number) => {
+  const deactivateUser = async (id: number) => {
     try {
-      await deleteUser(id)
+      await deactivateUserApi(id)
 
       message.success(
-        'User deleted successfully.',
+        'User deactivated successfully.',
       )
 
       await loadUsers()
@@ -71,7 +72,25 @@ export function useUsers() {
       message.error(
         error instanceof Error
           ? error.message
-          : 'Failed to delete user',
+          : 'Failed to deactivate user',
+      )
+    }
+  }
+
+  const activateUser = async (id: number) => {
+    try {
+      await activateUserApi(id)
+
+      message.success(
+        'User activated successfully.',
+      )
+
+      await loadUsers()
+    } catch (error) {
+      message.error(
+        error instanceof Error
+          ? error.message
+          : 'Failed to activate user',
       )
     }
   }
@@ -80,7 +99,8 @@ export function useUsers() {
     users,
     loading,
     addUser,
-    removeUser,
+    deactivateUser,
+    activateUser,
     reload: loadUsers,
   }
 }
