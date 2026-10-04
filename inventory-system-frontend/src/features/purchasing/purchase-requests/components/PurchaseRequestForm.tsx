@@ -11,13 +11,12 @@ import {
   Select,
   Space,
 } from 'antd'
-import type { FormInstance } from 'antd'
 import dayjs, { type Dayjs } from 'dayjs'
 import type {
   CreatePurchaseRequestRequest,
   PurchaseRequestResponse,
   UpdatePurchaseRequestRequest,
-} from '../api/purchaseRequestApi'
+} from '../../../../api/purchaseRequestApi'
 
 interface Option {
   value: number
@@ -44,7 +43,7 @@ interface FormValues {
   requiredDate: Dayjs
   reason: string
   notes?: string
-  warehouseId?: number
+  warehouseId: number
   locationId?: number
   lines: {
     productId?: number
@@ -70,60 +69,119 @@ export default function PurchaseRequestForm({
 
   const isEdit = Boolean(purchaseRequest)
 
-  const initialValues: FormValues = purchaseRequest
-    ? {
-        department: purchaseRequest.department,
-        requiredDate: dayjs(
-          purchaseRequest.requiredDate
-        ),
-        reason: purchaseRequest.reason,
-        notes: purchaseRequest.notes ?? undefined,
-        warehouseId:
-          purchaseRequest.warehouseId ?? undefined,
-        locationId:
-          purchaseRequest.locationId ?? undefined,
-        lines: purchaseRequest.lines.map((line) => ({
-          productId: line.productId ?? undefined,
-          description:
-            line.description ?? undefined,
-          quantity: line.quantity,
-          unit: line.unit,
-          requiredDate: line.requiredDate
-            ? dayjs(line.requiredDate)
-            : undefined,
-          notes: line.notes ?? undefined,
-        })),
-      }
-    : {
-        lines: [
-          {
-            quantity: 1,
-            unit: 'PCS',
-          },
-        ],
-      }
+  const initialValues: FormValues =
+    purchaseRequest
+      ? {
+          department:
+            purchaseRequest.department,
 
-  const handleFinish = async (values: FormValues) => {
+          requiredDate: dayjs(
+            purchaseRequest.requiredDate
+          ),
+
+          reason: purchaseRequest.reason,
+
+          notes:
+            purchaseRequest.notes ??
+            undefined,
+
+          warehouseId:
+            purchaseRequest.warehouseId!,
+
+          locationId:
+            purchaseRequest.locationId ??
+            undefined,
+
+          lines:
+            purchaseRequest.lines.map(
+              (line) => ({
+                productId:
+                  line.productId ??
+                  undefined,
+
+                description:
+                  line.description ??
+                  undefined,
+
+                quantity: line.quantity,
+
+                unit: line.unit,
+
+                requiredDate:
+                  line.requiredDate
+                    ? dayjs(
+                        line.requiredDate
+                      )
+                    : undefined,
+
+                notes:
+                  line.notes ??
+                  undefined,
+              })
+            ),
+        }
+      : {
+          department: '',
+          requiredDate: dayjs(),
+          reason: '',
+          notes: undefined,
+          warehouseId: undefined as unknown as number,
+          locationId: undefined,
+          lines: [
+            {
+              quantity: 1,
+              unit: 'PCS',
+            },
+          ],
+        }
+
+  const handleFinish = async (
+    values: FormValues
+  ) => {
     const request = {
-      department: values.department,
-      requiredDate: values.requiredDate.format(
-        'YYYY-MM-DD'
-      ),
-      reason: values.reason,
-      notes: values.notes,
-      warehouseId: values.warehouseId,
-      locationId: values.locationId,
+      department:
+        values.department,
 
-      lines: values.lines.map((line) => ({
-        productId: line.productId,
-        description: line.description,
-        quantity: line.quantity,
-        unit: line.unit,
-        requiredDate: line.requiredDate
-          ? line.requiredDate.format('YYYY-MM-DD')
-          : undefined,
-        notes: line.notes,
-      })),
+      requiredDate:
+        values.requiredDate.format(
+          'YYYY-MM-DD'
+        ),
+
+      reason: values.reason,
+
+      notes: values.notes,
+
+      warehouseId:
+        values.warehouseId,
+
+      locationId:
+        values.locationId,
+
+      lines: values.lines.map(
+        (line) => ({
+          productId:
+            line.productId,
+
+          description:
+            line.description,
+
+          quantity:
+            line.quantity,
+
+          unit:
+            line.unit,
+
+          requiredDate:
+            line.requiredDate
+              ? line.requiredDate.format(
+                  'YYYY-MM-DD'
+                )
+              : undefined,
+
+          notes:
+            line.notes,
+        })
+      ),
     }
 
     await onSubmit(request)
@@ -153,40 +211,57 @@ export default function PurchaseRequestForm({
         initialValues={initialValues}
         onFinish={handleFinish}
       >
-        <Divider orientation="left">
+        <Divider>
           Request Information
         </Divider>
 
         <Row gutter={16}>
-          <Col xs={24} md={12}>
+          <Col
+            xs={24}
+            md={12}
+          >
             <Form.Item
               label="Department"
               name="department"
               rules={[
                 {
                   required: true,
-                  message: 'Please enter the department',
+                  message:
+                    'Please enter the department',
                 },
               ]}
             >
-              <Input placeholder="e.g. Warehouse" />
+              <Input
+                placeholder="e.g. Warehouse"
+              />
             </Form.Item>
           </Col>
 
-          <Col xs={24} md={12}>
+          <Col
+            xs={24}
+            md={12}
+          >
             <Form.Item
               label="Required Date"
               name="requiredDate"
               rules={[
                 {
                   required: true,
-                  message: 'Please select the required date',
+                  message:
+                    'Please select the required date',
                 },
               ]}
             >
               <DatePicker
-                style={{ width: '100%' }}
+                style={{
+                  width: '100%',
+                }}
                 format="YYYY-MM-DD"
+                disabledDate={(current) =>
+                  current &&
+                  current <
+                    dayjs().startOf('day')
+                }
               />
             </Form.Item>
           </Col>
@@ -198,7 +273,8 @@ export default function PurchaseRequestForm({
           rules={[
             {
               required: true,
-              message: 'Please enter the reason',
+              message:
+                'Please enter the reason',
             },
             {
               max: 500,
@@ -224,22 +300,36 @@ export default function PurchaseRequestForm({
         </Form.Item>
 
         <Row gutter={16}>
-          <Col xs={24} md={12}>
+          <Col
+            xs={24}
+            md={12}
+          >
             <Form.Item
               label="Warehouse"
               name="warehouseId"
+              rules={[
+                {
+                  required: true,
+                  message:
+                    'Please select a warehouse',
+                },
+              ]}
             >
               <Select
-                allowClear
                 showSearch
                 optionFilterProp="label"
                 placeholder="Select warehouse"
-                options={warehouseOptions}
+                options={
+                  warehouseOptions
+                }
               />
             </Form.Item>
           </Col>
 
-          <Col xs={24} md={12}>
+          <Col
+            xs={24}
+            md={12}
+          >
             <Form.Item
               label="Location"
               name="locationId"
@@ -249,13 +339,15 @@ export default function PurchaseRequestForm({
                 showSearch
                 optionFilterProp="label"
                 placeholder="Select location"
-                options={locationOptions}
+                options={
+                  locationOptions
+                }
               />
             </Form.Item>
           </Col>
         </Row>
 
-        <Divider orientation="left">
+        <Divider>
           Request Lines
         </Divider>
 
@@ -263,8 +355,14 @@ export default function PurchaseRequestForm({
           name="lines"
           rules={[
             {
-              validator: async (_, value) => {
-                if (!value || value.length === 0) {
+              validator: async (
+                _,
+                value
+              ) => {
+                if (
+                  !value ||
+                  value.length === 0
+                ) {
                   return Promise.reject(
                     new Error(
                       'At least one request line is required'
@@ -275,163 +373,293 @@ export default function PurchaseRequestForm({
             },
           ]}
         >
-          {(fields, { add, remove }, { errors }) => (
+          {(
+            fields,
+            { add, remove },
+            { errors }
+          ) => (
             <>
-              {fields.map((field, index) => (
-                <div
-                  key={field.key}
-                  style={{
-                    padding: 16,
-                    marginBottom: 16,
-                    border: '1px solid #e5e7eb',
-                    borderRadius: 8,
-                  }}
-                >
-                  <Space
+              {fields.map(
+                (
+                  field,
+                  index
+                ) => (
+                  <div
+                    key={
+                      field.key
+                    }
                     style={{
-                      width: '100%',
-                      justifyContent: 'space-between',
-                      marginBottom: 12,
+                      padding: 16,
+                      marginBottom: 16,
+                      border:
+                        '1px solid #e5e7eb',
+                      borderRadius: 8,
                     }}
                   >
-                    <strong>
-                      Line {index + 1}
-                    </strong>
+                    <Space
+                      style={{
+                        width:
+                          '100%',
+                        justifyContent:
+                          'space-between',
+                        marginBottom: 12,
+                      }}
+                    >
+                      <strong>
+                        Line{' '}
+                        {index +
+                          1}
+                      </strong>
 
-                    {fields.length > 1 && (
-                      <Button
-                        danger
-                        type="link"
-                        onClick={() =>
-                          remove(field.name)
-                        }
+                      {fields.length >
+                        1 && (
+                        <Button
+                          danger
+                          type="link"
+                          onClick={() =>
+                            remove(
+                              field.name
+                            )
+                          }
+                        >
+                          Remove
+                        </Button>
+                      )}
+                    </Space>
+
+                    <Row
+                      gutter={16}
+                    >
+                      <Col
+                        xs={24}
+                        md={12}
                       >
-                        Remove
-                      </Button>
-                    )}
-                  </Space>
+                        <Form.Item
+                          {...field}
+                          label="Product"
+                          name={[
+                            field.name,
+                            'productId',
+                          ]}
+                          dependencies={[
+                            [
+                              field.name,
+                              'description',
+                            ],
+                          ]}
+                          rules={[
+                            ({
+                              getFieldValue,
+                            }) => ({
+                              validator:
+                                async (
+                                  _,
+                                  value
+                                ) => {
+                                  const description =
+                                    getFieldValue(
+                                      [
+                                        'lines',
+                                        field.name,
+                                        'description',
+                                      ]
+                                    )
 
-                  <Row gutter={16}>
-                    <Col xs={24} md={12}>
-                      <Form.Item
-                        {...field}
-                        label="Product"
-                        name={[
-                          field.name,
-                          'productId',
-                        ]}
+                                  if (
+                                    !value &&
+                                    !description?.trim()
+                                  ) {
+                                    return Promise.reject(
+                                      new Error(
+                                        'Select a product or enter a description'
+                                      )
+                                    )
+                                  }
+
+                                  return Promise.resolve()
+                                },
+                            }),
+                          ]}
+                        >
+                          <Select
+                            allowClear
+                            showSearch
+                            optionFilterProp="label"
+                            placeholder="Select product"
+                            options={
+                              productOptions
+                            }
+                          />
+                        </Form.Item>
+                      </Col>
+
+                      <Col
+                        xs={24}
+                        md={12}
                       >
-                        <Select
-                          allowClear
-                          showSearch
-                          optionFilterProp="label"
-                          placeholder="Select product"
-                          options={productOptions}
-                        />
-                      </Form.Item>
-                    </Col>
+                        <Form.Item
+                          {...field}
+                          label="Unit"
+                          name={[
+                            field.name,
+                            'unit',
+                          ]}
+                          rules={[
+                            {
+                              required:
+                                true,
+                              message:
+                                'Please enter the unit',
+                            },
+                          ]}
+                        >
+                          <Input placeholder="PCS" />
+                        </Form.Item>
+                      </Col>
+                    </Row>
 
-                    <Col xs={24} md={12}>
-                      <Form.Item
-                        {...field}
-                        label="Unit"
-                        name={[
-                          field.name,
-                          'unit',
-                        ]}
-                        rules={[
-                          {
-                            required: true,
-                            message:
-                              'Please enter the unit',
-                          },
-                        ]}
+                    <Row
+                      gutter={16}
+                    >
+                      <Col
+                        xs={24}
+                        md={8}
                       >
-                        <Input placeholder="PCS" />
-                      </Form.Item>
-                    </Col>
-                  </Row>
+                        <Form.Item
+                          {...field}
+                          label="Quantity"
+                          name={[
+                            field.name,
+                            'quantity',
+                          ]}
+                          rules={[
+                            {
+                              required:
+                                true,
+                              message:
+                                'Please enter quantity',
+                            },
+                            {
+                              type: 'number',
+                              min: 0.0001,
+                              message:
+                                'Quantity must be greater than 0',
+                            },
+                          ]}
+                        >
+                          <InputNumber
+                            style={{
+                              width:
+                                '100%',
+                            }}
+                            min={
+                              0.0001
+                            }
+                            step={1}
+                          />
+                        </Form.Item>
+                      </Col>
 
-                  <Row gutter={16}>
-                    <Col xs={24} md={8}>
-                      <Form.Item
-                        {...field}
-                        label="Quantity"
-                        name={[
-                          field.name,
-                          'quantity',
-                        ]}
-                        rules={[
-                          {
-                            required: true,
-                            message:
-                              'Please enter quantity',
-                          },
-                          {
-                            type: 'number',
-                            min: 0.0001,
-                            message:
-                              'Quantity must be greater than 0',
-                          },
-                        ]}
+                      <Col
+                        xs={24}
+                        md={8}
                       >
-                        <InputNumber
-                          style={{ width: '100%' }}
-                          min={0.0001}
-                          step={1}
-                        />
-                      </Form.Item>
-                    </Col>
+                        <Form.Item
+                          {...field}
+                          label="Required Date"
+                          name={[
+                            field.name,
+                            'requiredDate',
+                          ]}
+                        >
+                          <DatePicker
+                            style={{
+                              width:
+                                '100%',
+                            }}
+                            format="YYYY-MM-DD"
+                          />
+                        </Form.Item>
+                      </Col>
 
-                    <Col xs={24} md={8}>
-                      <Form.Item
-                        {...field}
-                        label="Required Date"
-                        name={[
-                          field.name,
-                          'requiredDate',
-                        ]}
+                      <Col
+                        xs={24}
+                        md={8}
                       >
-                        <DatePicker
-                          style={{
-                            width: '100%',
-                          }}
-                          format="YYYY-MM-DD"
-                        />
-                      </Form.Item>
-                    </Col>
+                        <Form.Item
+                          {...field}
+                          label="Description"
+                          name={[
+                            field.name,
+                            'description',
+                          ]}
+                          dependencies={[
+                            [
+                              field.name,
+                              'productId',
+                            ],
+                          ]}
+                          rules={[
+                            ({
+                              getFieldValue,
+                            }) => ({
+                              validator:
+                                async (
+                                  _,
+                                  value
+                                ) => {
+                                  const productId =
+                                    getFieldValue(
+                                      [
+                                        'lines',
+                                        field.name,
+                                        'productId',
+                                      ]
+                                    )
 
-                    <Col xs={24} md={8}>
-                      <Form.Item
-                        {...field}
-                        label="Description"
-                        name={[
-                          field.name,
-                          'description',
-                        ]}
-                      >
-                        <Input placeholder="Optional description" />
-                      </Form.Item>
-                    </Col>
-                  </Row>
+                                  if (
+                                    !productId &&
+                                    !value?.trim()
+                                  ) {
+                                    return Promise.reject(
+                                      new Error(
+                                        'Select a product or enter a description'
+                                      )
+                                    )
+                                  }
 
-                  <Form.Item
-                    {...field}
-                    label="Line Notes"
-                    name={[
-                      field.name,
-                      'notes',
-                    ]}
-                  >
-                    <Input.TextArea
-                      rows={2}
-                      placeholder="Optional line notes"
-                    />
-                  </Form.Item>
-                </div>
-              ))}
+                                  return Promise.resolve()
+                                },
+                            }),
+                          ]}
+                        >
+                          <Input
+                            placeholder="Optional description"
+                          />
+                        </Form.Item>
+                      </Col>
+                    </Row>
 
-              <Form.ErrorList errors={errors} />
+                    <Form.Item
+                      {...field}
+                      label="Line Notes"
+                      name={[
+                        field.name,
+                        'notes',
+                      ]}
+                    >
+                      <Input.TextArea
+                        rows={2}
+                        placeholder="Optional line notes"
+                      />
+                    </Form.Item>
+                  </div>
+                )
+              )}
+
+              <Form.ErrorList
+                errors={errors}
+              />
 
               <Button
                 type="dashed"
@@ -454,10 +682,15 @@ export default function PurchaseRequestForm({
         <Space
           style={{
             width: '100%',
-            justifyContent: 'flex-end',
+            justifyContent:
+              'flex-end',
           }}
         >
-          <Button onClick={handleCancel}>
+          <Button
+            onClick={
+              handleCancel
+            }
+          >
             Cancel
           </Button>
 
@@ -466,7 +699,9 @@ export default function PurchaseRequestForm({
             htmlType="submit"
             loading={loading}
           >
-            {isEdit ? 'Save Changes' : 'Create'}
+            {isEdit
+              ? 'Save Changes'
+              : 'Create'}
           </Button>
         </Space>
       </Form>

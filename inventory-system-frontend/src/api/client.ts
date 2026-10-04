@@ -27,12 +27,15 @@ export async function apiRequest<T>(
   )
 
   if (!response.ok) {
-    let errorMessage = `Request failed (${response.status})`
+    let errorMessage =
+      `Request failed (${response.status})`
 
     try {
       const errorBody = await response.json()
 
-      if (errorBody.message) {
+      if (errorBody.detail) {
+        errorMessage = errorBody.detail
+      } else if (errorBody.message) {
         errorMessage = errorBody.message
       } else if (errorBody.error) {
         errorMessage = errorBody.error

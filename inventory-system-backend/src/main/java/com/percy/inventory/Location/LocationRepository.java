@@ -6,24 +6,83 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-public interface LocationRepository extends JpaRepository<Location, Long> {
+public interface LocationRepository
+        extends JpaRepository<Location, Long> {
 
     boolean existsByWarehouse_WarehouseIdAndCodeIgnoreCase(
             Long warehouseId,
             String code
     );
 
-    @Query("""
-            SELECT l
-            FROM Location l
-            WHERE (:search IS NULL
-                   OR LOWER(l.code) LIKE LOWER(CONCAT('%', :search, '%'))
-                   OR LOWER(l.name) LIKE LOWER(CONCAT('%', :search, '%')))
-              AND (:type IS NULL OR l.type = :type)
-              AND (:status IS NULL OR l.status = :status)
-              AND (:warehouseId IS NULL
-                   OR l.warehouse.warehouseId = :warehouseId)
-            """)
+    @Query(
+            value = """
+                    SELECT
+                        l.location_id,
+                        l.name,
+                        l.code,
+                        l.type,
+                        l.status,
+                        l.warehouse_id,
+                        l.created_at,
+                        l.updated_at
+                    FROM locations l
+                    WHERE (
+                        CAST(:search AS TEXT) IS NULL
+                        OR l.code ILIKE CONCAT(
+                            '%',
+                            CAST(:search AS TEXT),
+                            '%'
+                        )
+                        OR l.name ILIKE CONCAT(
+                            '%',
+                            CAST(:search AS TEXT),
+                            '%'
+                        )
+                    )
+                    AND (
+                        CAST(:type AS TEXT) IS NULL
+                        OR l.type = CAST(:type AS TEXT)
+                    )
+                    AND (
+                        CAST(:status AS TEXT) IS NULL
+                        OR l.status = CAST(:status AS TEXT)
+                    )
+                    AND (
+                        :warehouseId IS NULL
+                        OR l.warehouse_id = :warehouseId
+                    )
+                    """,
+            countQuery = """
+                    SELECT COUNT(*)
+                    FROM locations l
+                    WHERE (
+                        CAST(:search AS TEXT) IS NULL
+                        OR l.code ILIKE CONCAT(
+                            '%',
+                            CAST(:search AS TEXT),
+                            '%'
+                        )
+                        OR l.name ILIKE CONCAT(
+                            '%',
+                            CAST(:search AS TEXT),
+                            '%'
+                        )
+                    )
+                    AND (
+                        CAST(:type AS TEXT) IS NULL
+                        OR l.type = CAST(:type AS TEXT)
+                    )
+                    AND (
+                        CAST(:status AS TEXT) IS NULL
+                        OR l.status = CAST(:status AS TEXT)
+                    )
+                    AND (
+                        :warehouseId IS NULL
+                        OR l.warehouse_id = :warehouseId
+                    )
+                    """,
+            nativeQuery = true
+    )
     Page<Location> search(
             @Param("search") String search,
             @Param("type") LocationType type,

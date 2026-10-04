@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,10 +23,11 @@ public class LocationController {
     public ResponseEntity<LocationResponse> create(
             @Valid @RequestBody LocationCreateRequest request
     ) {
-        LocationResponse response = locationService.create(request);
+        LocationResponse response =
+                locationService.create(request);
 
         return ResponseEntity
-                .status(201)
+                .status(HttpStatus.CREATED)
                 .body(response);
     }
 
@@ -63,7 +65,10 @@ public class LocationController {
             @Valid @RequestBody LocationUpdateRequest request
     ) {
         return ResponseEntity.ok(
-                locationService.update(locationId, request)
+                locationService.update(
+                        locationId,
+                        request
+                )
         );
     }
 
@@ -72,7 +77,10 @@ public class LocationController {
             @PathVariable Long locationId
     ) {
         locationService.deactivate(locationId);
-        return ResponseEntity.noContent().build();
+
+        return ResponseEntity
+                .noContent()
+                .build();
     }
 
     @PatchMapping("/{locationId}/activate")
@@ -80,6 +88,9 @@ public class LocationController {
             @PathVariable Long locationId
     ) {
         locationService.activate(locationId);
-        return ResponseEntity.noContent().build();
+
+        return ResponseEntity
+                .noContent()
+                .build();
     }
 }

@@ -10,11 +10,24 @@ import {
   message,
 } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
-import { useMemo, useState } from 'react'
+import {
+  useEffect,
+  useMemo,
+  useState,
+} from 'react'
+
 import type {
   PurchaseRequestResponse,
   PurchaseRequestStatus,
 } from '../../../../api/purchaseRequestApi'
+
+import {
+  getWarehouses,
+  type WarehouseResponse,
+} from '../../../../api/warehouseApi'
+
+import PurchaseRequestForm from '../components/PurchaseRequestForm'
+
 import { usePurchaseRequests } from '../hooks/usePurchaseRequests'
 
 const { Search } = Input
@@ -25,7 +38,15 @@ type Role =
   | 'PURCHASING_STAFF'
   | 'SALES_STAFF'
 
-const statusColors: Record<PurchaseRequestStatus, string> = {
+type SelectOption = {
+  value: number
+  label: string
+}
+
+const statusColors: Record<
+  PurchaseRequestStatus,
+  string
+> = {
   DRAFT: 'default',
   PENDING_APPROVAL: 'gold',
   APPROVED: 'blue',
@@ -39,6 +60,9 @@ export default function PurchaseRequestPage() {
     purchaseRequests,
     loading,
     error,
+
+    createPurchaseRequest,
+
     submitPurchaseRequest,
     approvePurchaseRequest,
     rejectPurchaseRequest,
@@ -47,51 +71,172 @@ export default function PurchaseRequestPage() {
   } = usePurchaseRequests()
 
   const [search, setSearch] = useState('')
+
   const [status, setStatus] = useState<
     PurchaseRequestStatus | undefined
   >()
 
-  const role = localStorage.getItem('role') as Role | null
+  const [formOpen, setFormOpen] =
+    useState(false)
+
+  const [formLoading, setFormLoading] =
+    useState(false)
+
+  const [warehouses, setWarehouses] =
+    useState<WarehouseResponse[]>([])
+
+  const [warehousesLoading, setWarehousesLoading] =
+    useState(false)
+
+  const role =
+    localStorage.getItem('role') as Role | null
 
   const userId = Number(
     localStorage.getItem('userId')
   )
 
-  const filteredPurchaseRequests = useMemo(() => {
-    const searchValue = search
-      .toLowerCase()
-      .trim()
+  /*
+   * Load warehouses for the purchase request form.
+   */
+  useEffect(() => {
+    const loadWarehouses = async () => {
+      setWarehousesLoading(true)
 
-    return purchaseRequests.filter(
-      (purchaseRequest) => {
-        const matchesSearch =
-          !searchValue ||
-          purchaseRequest.requestNo
-            .toLowerCase()
-            .includes(searchValue) ||
-          purchaseRequest.requesterName
-            .toLowerCase()
-            .includes(searchValue) ||
-          purchaseRequest.department
-            .toLowerCase()
-            .includes(searchValue)
+      try {
+        const response =
+          await getWarehouses({
+            page: 0,
+            size: 100,
+            status: 'ACTIVE',
+          })
 
-        const matchesStatus =
-          !status ||
-          purchaseRequest.status === status
-
-        return matchesSearch && matchesStatus
+        setWarehouses(
+          response.content
+        )
+      } catch (err) {
+        message.error(
+          err instanceof Error
+            ? err.message
+            : 'Failed to load warehouses'
+        )
+      } finally {
+        setWarehousesLoading(false)
       }
-    )
-  }, [
-    purchaseRequests,
-    search,
-    status,
-  ])
+    }
 
-  const handleSubmit = async (id: number) => {
+    loadWarehouses()
+  }, [])
+
+  const warehouseOptions =
+    useMemo(
+      (): SelectOption[] =>
+        warehouses.map(
+          (warehouse) => ({
+            value:
+              warehouse.warehouseId,
+            label:
+              `${warehouse.code} - ${warehouse.name}`,
+          })
+        ),
+      [warehouses]
+    )
+
+  /*
+   * Product options will be connected
+   * when the product API/hook is wired.
+   *
+   * The form currently allows a line to
+   * contain a description instead.
+   */
+  const productOptions: SelectOption[] = []
+
+  /*
+   * Location options will be connected
+   * when the location API/hook is wired.
+   */
+  const locationOptions: SelectOption[] = []
+
+  const filteredPurchaseRequests =
+    useMemo(() => {
+      const searchValue =
+        search
+          .toLowerCase()
+          .trim()
+
+      return purchaseRequests.filter(
+        (purchaseRequest) => {
+          const matchesSearch =
+            !searchValue ||
+            purchaseRequest.requestNo
+              .toLowerCase()
+              .includes(
+                searchValue
+              ) ||
+            purchaseRequest
+              .requesterName
+              .toLowerCase()
+              .includes(
+                searchValue
+              ) ||
+            purchaseRequest
+              .department
+              .toLowerCase()
+              .includes(
+                searchValue
+              )
+
+          const matchesStatus =
+            !status ||
+            purchaseRequest.status ===
+              status
+
+          return (
+            matchesSearch &&
+            matchesStatus
+          )
+        }
+      )
+    }, [
+      purchaseRequests,
+      search,
+      status,
+    ])
+
+  const handleCreate = async (
+    values: Parameters<
+      typeof createPurchaseRequest
+    >[0]
+  ) => {
+    setFormLoading(true)
+
     try {
-      await submitPurchaseRequest(id)
+      await createPurchaseRequest(
+        values
+      )
+
+      message.success(
+        'Purchase request created successfully'
+      )
+
+      setFormOpen(false)
+    } catch (err) {
+      message.error(
+        err instanceof Error
+          ? err.message
+          : 'Failed to create purchase request'
+      )
+    } finally {
+      setFormLoading(false)
+    }
+  }
+
+  const handleSubmit = async (
+    id: number
+  ) => {
+    try {
+      await submitPurchaseRequest(
+        id
+      )
 
       message.success(
         'Purchase request submitted'
@@ -105,9 +250,13 @@ export default function PurchaseRequestPage() {
     }
   }
 
-  const handleApprove = async (id: number) => {
+  const handleApprove = async (
+    id: number
+  ) => {
     try {
-      await approvePurchaseRequest(id)
+      await approvePurchaseRequest(
+        id
+      )
 
       message.success(
         'Purchase request approved'
@@ -121,9 +270,13 @@ export default function PurchaseRequestPage() {
     }
   }
 
-  const handleReject = async (id: number) => {
+  const handleReject = async (
+    id: number
+  ) => {
     try {
-      await rejectPurchaseRequest(id)
+      await rejectPurchaseRequest(
+        id
+      )
 
       message.success(
         'Purchase request rejected'
@@ -137,9 +290,13 @@ export default function PurchaseRequestPage() {
     }
   }
 
-  const handleProcess = async (id: number) => {
+  const handleProcess = async (
+    id: number
+  ) => {
     try {
-      await processPurchaseRequest(id)
+      await processPurchaseRequest(
+        id
+      )
 
       message.success(
         'Purchase request is now processing'
@@ -153,9 +310,13 @@ export default function PurchaseRequestPage() {
     }
   }
 
-  const handleComplete = async (id: number) => {
+  const handleComplete = async (
+    id: number
+  ) => {
     try {
-      await completePurchaseRequest(id)
+      await completePurchaseRequest(
+        id
+      )
 
       message.success(
         'Purchase request completed'
@@ -172,7 +333,9 @@ export default function PurchaseRequestPage() {
   const canEdit = (
     record: PurchaseRequestResponse
   ) => {
-    if (record.status !== 'DRAFT') {
+    if (
+      record.status !== 'DRAFT'
+    ) {
       return false
     }
 
@@ -181,19 +344,26 @@ export default function PurchaseRequestPage() {
     }
 
     if (
-      role !== 'WAREHOUSE_STAFF' &&
-      role !== 'PURCHASING_STAFF'
+      role !==
+        'WAREHOUSE_STAFF' &&
+      role !==
+        'PURCHASING_STAFF'
     ) {
       return false
     }
 
-    return record.requesterId === userId
+    return (
+      record.requesterId ===
+      userId
+    )
   }
 
   const canSubmit = (
     record: PurchaseRequestResponse
   ) => {
-    if (record.status !== 'DRAFT') {
+    if (
+      record.status !== 'DRAFT'
+    ) {
       return false
     }
 
@@ -202,22 +372,29 @@ export default function PurchaseRequestPage() {
     }
 
     if (
-      role !== 'WAREHOUSE_STAFF' &&
-      role !== 'PURCHASING_STAFF'
+      role !==
+        'WAREHOUSE_STAFF' &&
+      role !==
+        'PURCHASING_STAFF'
     ) {
       return false
     }
 
-    return record.requesterId === userId
+    return (
+      record.requesterId ===
+      userId
+    )
   }
 
   const canApproveOrReject =
     role === 'ADMIN' ||
-    role === 'PURCHASING_STAFF'
+    role ===
+      'PURCHASING_STAFF'
 
   const canProcessOrComplete =
     role === 'ADMIN' ||
-    role === 'PURCHASING_STAFF'
+    role ===
+      'PURCHASING_STAFF'
 
   const columns: ColumnsType<
     PurchaseRequestResponse
@@ -257,8 +434,15 @@ export default function PurchaseRequestPage() {
       render: (
         value: PurchaseRequestStatus
       ) => (
-        <Tag color={statusColors[value]}>
-          {value.replaceAll('_', ' ')}
+        <Tag
+          color={
+            statusColors[value]
+          }
+        >
+          {value.replaceAll(
+            '_',
+            ' '
+          )}
         </Tag>
       ),
     },
@@ -284,7 +468,9 @@ export default function PurchaseRequestPage() {
             <Popconfirm
               title="Submit this purchase request?"
               onConfirm={() =>
-                handleSubmit(record.id)
+                handleSubmit(
+                  record.id
+                )
               }
             >
               <Button
@@ -304,7 +490,9 @@ export default function PurchaseRequestPage() {
                   size="small"
                   type="primary"
                   onClick={() =>
-                    handleApprove(record.id)
+                    handleApprove(
+                      record.id
+                    )
                   }
                 >
                   Approve
@@ -313,7 +501,9 @@ export default function PurchaseRequestPage() {
                 <Popconfirm
                   title="Reject this purchase request?"
                   onConfirm={() =>
-                    handleReject(record.id)
+                    handleReject(
+                      record.id
+                    )
                   }
                 >
                   <Button
@@ -333,7 +523,9 @@ export default function PurchaseRequestPage() {
                 size="small"
                 type="primary"
                 onClick={() =>
-                  handleProcess(record.id)
+                  handleProcess(
+                    record.id
+                  )
                 }
               >
                 Process
@@ -346,7 +538,9 @@ export default function PurchaseRequestPage() {
               <Popconfirm
                 title="Mark this purchase request as completed?"
                 onConfirm={() =>
-                  handleComplete(record.id)
+                  handleComplete(
+                    record.id
+                  )
                 }
               >
                 <Button
@@ -363,93 +557,124 @@ export default function PurchaseRequestPage() {
   ]
 
   return (
-    <Card
-      title="Purchase Requests"
-      extra={
-        <Button type="primary">
-          Create Purchase Request
-        </Button>
-      }
-    >
-      <Space
-        style={{
-          width: '100%',
-          marginBottom: 16,
-        }}
-        wrap
-      >
-        <Search
-          placeholder="Search request no., requester, department"
-          allowClear
-          onChange={(event) =>
-            setSearch(
-              event.target.value
-            )
-          }
-          style={{
-            width: 300,
-          }}
-        />
-
-        <Select
-          placeholder="Filter by status"
-          allowClear
-          value={status}
-          onChange={setStatus}
-          style={{
-            width: 200,
-          }}
-          options={[
-            {
-              value: 'DRAFT',
-              label: 'Draft',
-            },
-            {
-              value: 'PENDING_APPROVAL',
-              label: 'Pending Approval',
-            },
-            {
-              value: 'APPROVED',
-              label: 'Approved',
-            },
-            {
-              value: 'REJECTED',
-              label: 'Rejected',
-            },
-            {
-              value: 'PROCESSING',
-              label: 'Processing',
-            },
-            {
-              value: 'COMPLETED',
-              label: 'Completed',
-            },
-          ]}
-        />
-      </Space>
-
-      {error && (
-        <div
-          style={{
-            marginBottom: 16,
-            color: 'red',
-          }}
-        >
-          {error}
-        </div>
-      )}
-
-      <Table
-        rowKey="id"
-        columns={columns}
-        dataSource={
-          filteredPurchaseRequests
+    <>
+      <Card
+        title="Purchase Requests"
+        extra={
+          <Button
+            type="primary"
+            onClick={() =>
+              setFormOpen(true)
+            }
+            loading={
+              warehousesLoading
+            }
+          >
+            Create Purchase Request
+          </Button>
         }
-        loading={loading}
-        scroll={{
-          x: 1000,
-        }}
+      >
+        <Space
+          style={{
+            width: '100%',
+            marginBottom: 16,
+          }}
+          wrap
+        >
+          <Search
+            placeholder="Search request no., requester, department"
+            allowClear
+            onChange={(event) =>
+              setSearch(
+                event.target.value
+              )
+            }
+            style={{
+              width: 300,
+            }}
+          />
+
+          <Select
+            placeholder="Filter by status"
+            allowClear
+            value={status}
+            onChange={setStatus}
+            style={{
+              width: 200,
+            }}
+            options={[
+              {
+                value: 'DRAFT',
+                label: 'Draft',
+              },
+              {
+                value:
+                  'PENDING_APPROVAL',
+                label:
+                  'Pending Approval',
+              },
+              {
+                value: 'APPROVED',
+                label: 'Approved',
+              },
+              {
+                value: 'REJECTED',
+                label: 'Rejected',
+              },
+              {
+                value: 'PROCESSING',
+                label: 'Processing',
+              },
+              {
+                value: 'COMPLETED',
+                label: 'Completed',
+              },
+            ]}
+          />
+        </Space>
+
+        {error && (
+          <div
+            style={{
+              marginBottom: 16,
+              color: 'red',
+            }}
+          >
+            {error}
+          </div>
+        )}
+
+        <Table
+          rowKey="id"
+          columns={columns}
+          dataSource={
+            filteredPurchaseRequests
+          }
+          loading={loading}
+          scroll={{
+            x: 1000,
+          }}
+        />
+      </Card>
+
+      <PurchaseRequestForm
+        open={formOpen}
+        loading={formLoading}
+        purchaseRequest={null}
+        warehouseOptions={
+          warehouseOptions
+        }
+        locationOptions={
+          locationOptions
+        }
+        productOptions={
+          productOptions
+        }
+        onCancel={() =>
+          setFormOpen(false)
+        }
+        onSubmit={handleCreate}
       />
-    </Card>
+    </>
   )
 }

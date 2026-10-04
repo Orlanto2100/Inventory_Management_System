@@ -1,570 +1,418 @@
-import { useState } from 'react'
 import {
+  Alert,
   Button,
   Card,
-  Col,
-  Form,
-  Input,
-  Modal,
-  Row,
-  Select,
+  message,
   Space,
-  Table,
-  Tag,
   Typography,
 } from 'antd'
+import { PlusOutlined } from '@ant-design/icons'
+import { useEffect, useMemo, useState } from 'react'
+
 import {
-  DeleteOutlined,
-  EditOutlined,
-  PlusOutlined,
-  SearchOutlined,
-} from '@ant-design/icons'
-import type { ColumnsType } from 'antd/es/table'
+  type LocationCreateRequest,
+  type LocationResponse,
+  type LocationSearchParams,
+  type LocationStatus,
+  type LocationType,
+  type LocationUpdateRequest,
+} from '../../../../api/locationApi'
+
+import {
+  getWarehouses,
+  type WarehouseResponse,
+} from '../../../../api/warehouseApi'
+
+import { useLocations } from '../hooks/useLocation'
+import LocationFilters from '../components/LocationFilters'
+import LocationTable from '../components/LocationTable'
+import LocationFormModal from '../components/LocationFormModal'
 
 const { Title, Text } = Typography
 
-type Location = {
-  id: number
-  name: string
-  code: string
-  warehouse: string
-  description: string
-  status: 'Active' | 'Inactive'
-}
-
-type LocationFormValues = {
-  name: string
-  code: string
-  warehouse: string
-  description: string
-  status: 'Active' | 'Inactive'
-}
-
-const initialLocations: Location[] = [
-  {
-    id: 1,
-    name: 'Shelf A-01',
-    code: 'A-01',
-    warehouse: 'Main Warehouse',
-    description: 'Main storage area',
-    status: 'Active',
-  },
-  {
-    id: 2,
-    name: 'Shelf A-02',
-    code: 'A-02',
-    warehouse: 'Main Warehouse',
-    description: 'Food products',
-    status: 'Active',
-  },
-  {
-    id: 3,
-    name: 'Shelf B-01',
-    code: 'B-01',
-    warehouse: 'Mandalay Warehouse',
-    description: 'Ingredient storage',
-    status: 'Active',
-  },
-  {
-    id: 4,
-    name: 'Shelf C-01',
-    code: 'C-01',
-    warehouse: 'Bago Warehouse',
-    description: 'Regional stock',
-    status: 'Active',
-  },
-  {
-    id: 5,
-    name: 'Old Shelf',
-    code: 'OLD-01',
-    warehouse: 'Old Warehouse',
-    description: 'Unused storage location',
-    status: 'Inactive',
-  },
-]
-
-const warehouseOptions = [
-  'Main Warehouse',
-  'Mandalay Warehouse',
-  'Bago Warehouse',
-  'Old Warehouse',
-]
-
 export default function LocationPage() {
-  const [locations, setLocations] =
-    useState<Location[]>(initialLocations)
+  const {
+    locations,
+    loading,
+    submitting,
+    error,
+    loadLocations,
+    create,
+    update,
+    activate,
+    deactivate,
+  } = useLocations()
 
-  const [searchText, setSearchText] = useState('')
+  const [warehouses, setWarehouses] =
+    useState<WarehouseResponse[]>([])
 
-  const [warehouseFilter, setWarehouseFilter] =
-    useState<string | undefined>(undefined)
+  const [search, setSearch] =
+    useState('')
 
-  const [statusFilter, setStatusFilter] =
-    useState<Location['status'] | undefined>(undefined)
+  const [type, setType] =
+    useState<LocationType | undefined>(
+      undefined,
+    )
 
-  const [modalOpen, setModalOpen] = useState(false)
+  const [status, setStatus] =
+    useState<LocationStatus | undefined>(
+      undefined,
+    )
+
+  const [warehouseId, setWarehouseId] =
+    useState<number | undefined>(
+      undefined,
+    )
+
+  const [page, setPage] =
+    useState(0)
+
+  const [pageSize] =
+    useState(10)
+
+  const [modalOpen, setModalOpen] =
+    useState(false)
 
   const [editingLocation, setEditingLocation] =
-    useState<Location | null>(null)
+    useState<LocationResponse | null>(
+      null,
+    )
 
-  const [form] =
-    Form.useForm<LocationFormValues>()
+  const role =
+    localStorage.getItem('role')
 
-  const filteredLocations = locations.filter(
-    (location) => {
-      const search = searchText
-        .toLowerCase()
-        .trim()
+  const isAdmin =
+    role === 'ADMIN'
 
-      const matchesSearch =
-        !search ||
-        location.name
-          .toLowerCase()
-          .includes(search) ||
-        location.code
-          .toLowerCase()
-          .includes(search) ||
-        location.warehouse
-          .toLowerCase()
-          .includes(search) ||
-        location.description
-          .toLowerCase()
-          .includes(search)
+  const isWarehouseStaff =
+    role === 'WAREHOUSE_STAFF'
 
-      const matchesWarehouse =
-        !warehouseFilter ||
-        location.warehouse === warehouseFilter
+  const loadWarehouseOptions =
+    async () => {
+      try {
+        const response =
+          await getWarehouses({
+            page: 0,
+            size: 100,
+          })
 
-      const matchesStatus =
-        !statusFilter ||
-        location.status === statusFilter
+        setWarehouses(
+          response.content,
+        )
+      } catch {
+        setWarehouses([])
+      }
+    }
 
-      return (
-        matchesSearch &&
-        matchesWarehouse &&
-        matchesStatus
-      )
-    },
-  )
+  const loadData = async () => {
+    const params: LocationSearchParams = {
+      page,
+      size: pageSize,
+    }
 
-  const openCreateModal = () => {
-    setEditingLocation(null)
+    if (search.trim()) {
+      params.search =
+        search.trim()
+    }
 
-    form.resetFields()
+    if (type) {
+      params.type = type
+    }
 
-    form.setFieldsValue({
-      status: 'Active',
-    })
+    if (status) {
+      params.status = status
+    }
 
-    setModalOpen(true)
+    if (warehouseId !== undefined) {
+      params.warehouseId =
+        warehouseId
+    }
+
+    await loadLocations(params)
   }
 
-  const openEditModal = (
-    location: Location,
+  useEffect(() => {
+    loadWarehouseOptions()
+  }, [])
+
+  useEffect(() => {
+    loadData()
+  }, [
+    page,
+    pageSize,
+    search,
+    type,
+    status,
+    warehouseId,
+  ])
+
+  const warehouseOptions =
+    useMemo(
+      () =>
+        warehouses.map(
+          (warehouse) => ({
+            value:
+              warehouse.warehouseId,
+            label:
+              `${warehouse.code} - ${warehouse.name}`,
+          }),
+        ),
+      [warehouses],
+    )
+
+  const handleSearchChange = (
+    value: string,
   ) => {
-    setEditingLocation(location)
+    setSearch(value)
+    setPage(0)
+  }
 
-    form.setFieldsValue({
-      name: location.name,
-      code: location.code,
-      warehouse: location.warehouse,
-      description: location.description,
-      status: location.status,
-    })
+  const handleTypeChange = (
+    value:
+      | LocationType
+      | undefined,
+  ) => {
+    setType(value)
+    setPage(0)
+  }
 
+  const handleStatusChange = (
+    value:
+      | LocationStatus
+      | undefined,
+  ) => {
+    setStatus(value)
+    setPage(0)
+  }
+
+  const handleWarehouseChange = (
+    value:
+      | number
+      | undefined,
+  ) => {
+    setWarehouseId(value)
+    setPage(0)
+  }
+
+  const handleAdd = () => {
+    if (!isAdmin) {
+      return
+    }
+
+    setEditingLocation(null)
     setModalOpen(true)
   }
 
-  const closeModal = () => {
-    setModalOpen(false)
-    setEditingLocation(null)
-    form.resetFields()
+  const handleEdit = (
+    location: LocationResponse,
+  ) => {
+    if (!isAdmin) {
+      return
+    }
+
+    setEditingLocation(location)
+    setModalOpen(true)
   }
 
-  const handleSubmit = async () => {
-    const values =
-      await form.validateFields()
+  const handleSubmit = async (
+    values:
+      | LocationCreateRequest
+      | LocationUpdateRequest,
+  ) => {
+    if (!isAdmin) {
+      return
+    }
+
+    let success = false
 
     if (editingLocation) {
-      setLocations(
-        (currentLocations) =>
-          currentLocations.map(
-            (location) =>
-              location.id ===
-              editingLocation.id
-                ? {
-                    ...location,
-                    ...values,
-                  }
-                : location,
-          ),
+      success = await update(
+        editingLocation.locationId,
+        values as LocationUpdateRequest,
       )
     } else {
-      const newLocation: Location = {
-        id: Date.now(),
-        ...values,
-      }
-
-      setLocations(
-        (currentLocations) => [
-          ...currentLocations,
-          newLocation,
-        ],
+      success = await create(
+        values as LocationCreateRequest,
       )
     }
 
-    closeModal()
+    if (!success) {
+      return
+    }
+
+    message.success(
+      editingLocation
+        ? 'Location updated successfully'
+        : 'Location created successfully',
+    )
+
+    setModalOpen(false)
+    setEditingLocation(null)
+
+    await loadData()
   }
 
-  const handleDelete = (
-    location: Location,
+  const handleActivate = async (
+    locationId: number,
   ) => {
-    Modal.confirm({
-      title: 'Delete location?',
-      content: (
-        <>
-          Are you sure you want to delete{' '}
-          <strong>{location.name}</strong>?
-        </>
-      ),
-      okText: 'Delete',
-      okType: 'danger',
-      cancelText: 'Cancel',
-      onOk: () => {
-        setLocations(
-          (currentLocations) =>
-            currentLocations.filter(
-              (item) =>
-                item.id !== location.id,
-            ),
-        )
-      },
-    })
+    if (!isAdmin) {
+      return
+    }
+
+    const success =
+      await activate(locationId)
+
+    if (!success) {
+      return
+    }
+
+    message.success(
+      'Location activated successfully',
+    )
+
+    await loadData()
   }
 
-  const columns: ColumnsType<Location> = [
-    {
-      title: 'Location',
-      dataIndex: 'name',
-      key: 'name',
-      sorter: (a, b) =>
-        a.name.localeCompare(b.name),
-      render: (name: string) => (
-        <Text strong>{name}</Text>
-      ),
-    },
-    {
-      title: 'Code',
-      dataIndex: 'code',
-      key: 'code',
-    },
-    {
-      title: 'Warehouse',
-      dataIndex: 'warehouse',
-      key: 'warehouse',
-    },
-    {
-      title: 'Description',
-      dataIndex: 'description',
-      key: 'description',
-      render: (description: string) =>
-        description || '—',
-    },
-    {
-      title: 'Status',
-      dataIndex: 'status',
-      key: 'status',
-      align: 'center',
-      render: (
-        status: Location['status'],
-      ) =>
-        status === 'Active' ? (
-          <Tag color="green">Active</Tag>
-        ) : (
-          <Tag>Inactive</Tag>
-        ),
-    },
-    {
-      title: 'Actions',
-      key: 'actions',
-      align: 'right',
-      fixed: 'right',
-      render: (_, location) => (
-        <Space size="small">
-          <Button
-            type="text"
-            icon={<EditOutlined />}
-            onClick={() =>
-              openEditModal(location)
-            }
-          />
+  const handleDeactivate = async (
+    locationId: number,
+  ) => {
+    if (!isAdmin) {
+      return
+    }
 
-          <Button
-            type="text"
-            danger
-            icon={<DeleteOutlined />}
-            onClick={() =>
-              handleDelete(location)
-            }
-          />
-        </Space>
-      ),
-    },
-  ]
+    const success =
+      await deactivate(locationId)
+
+    if (!success) {
+      return
+    }
+
+    message.success(
+      'Location deactivated successfully',
+    )
+
+    await loadData()
+  }
+
+  const handleModalCancel = () => {
+    setModalOpen(false)
+    setEditingLocation(null)
+  }
 
   return (
-    <div>
-      <div>
-        <Title
-          level={2}
-          style={{
-            margin: 0,
-            color: '#263238',
-          }}
-        >
-          Locations
-        </Title>
-
-        <Text type="secondary">
-          Manage storage locations within
-          your warehouses.
-        </Text>
-      </div>
-
-      <Card
+    <Space
+      direction="vertical"
+      size="large"
+      style={{
+        width: '100%',
+      }}
+    >
+      <div
         style={{
-          marginTop: 24,
-          background: '#f7f8fa',
+          display: 'flex',
+          justifyContent:
+            'space-between',
+          alignItems: 'center',
+          gap: 16,
+          flexWrap: 'wrap',
         }}
       >
-        <Row
-          gutter={[12, 12]}
-          align="middle"
-          justify="space-between"
-          style={{
-            marginBottom: 20,
-          }}
-        >
-          <Col xs={24} lg={18}>
-            <Row gutter={[8, 8]}>
-              <Col
-                xs={24}
-                sm={12}
-                md={10}
-              >
-                <Input
-                  placeholder="Search locations..."
-                  prefix={
-                    <SearchOutlined />
-                  }
-                  value={searchText}
-                  onChange={(event) =>
-                    setSearchText(
-                      event.target.value,
-                    )
-                  }
-                  allowClear
-                />
-              </Col>
-
-              <Col
-                xs={24}
-                sm={6}
-                md={6}
-              >
-                <Select
-                  placeholder="Warehouse"
-                  value={warehouseFilter}
-                  onChange={
-                    setWarehouseFilter
-                  }
-                  allowClear
-                  style={{
-                    width: '100%',
-                  }}
-                  options={warehouseOptions.map(
-                    (warehouse) => ({
-                      label: warehouse,
-                      value: warehouse,
-                    }),
-                  )}
-                />
-              </Col>
-
-              <Col
-                xs={24}
-                sm={6}
-                md={5}
-              >
-                <Select
-                  placeholder="Status"
-                  value={statusFilter}
-                  onChange={
-                    setStatusFilter
-                  }
-                  allowClear
-                  style={{
-                    width: '100%',
-                  }}
-                  options={[
-                    {
-                      label: 'Active',
-                      value: 'Active',
-                    },
-                    {
-                      label: 'Inactive',
-                      value: 'Inactive',
-                    },
-                  ]}
-                />
-              </Col>
-            </Row>
-          </Col>
-
-          <Col
-            xs={24}
-            lg={6}
+        <div>
+          <Title
+            level={3}
             style={{
-              textAlign: 'right',
+              margin: 0,
             }}
           >
-            <Button
-              type="primary"
-              icon={<PlusOutlined />}
-              onClick={
-                openCreateModal
-              }
-            >
-              Add Location
-            </Button>
-          </Col>
-        </Row>
+            Locations
+          </Title>
 
-        <Table
-          rowKey="id"
-          columns={columns}
-          dataSource={filteredLocations}
-          pagination={{
-            pageSize: 10,
-            showSizeChanger: true,
-            showTotal: (total) =>
-              `Total ${total} locations`,
-          }}
-          scroll={{
-            x: 900,
-          }}
+          <Text type="secondary">
+            {isWarehouseStaff
+              ? 'View locations for your assigned warehouse.'
+              : 'Manage warehouse storage and operational locations.'}
+          </Text>
+        </div>
+
+        {isAdmin && (
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={handleAdd}
+          >
+            Add Location
+          </Button>
+        )}
+      </div>
+
+      {error && (
+        <Alert
+          type="error"
+          showIcon
+          message="Unable to load locations"
+          description={error}
+        />
+      )}
+
+      <Card>
+        <LocationFilters
+          search={search}
+          type={type}
+          status={status}
+          warehouseId={
+            isAdmin
+              ? warehouseId
+              : undefined
+          }
+          warehouseOptions={
+            isAdmin
+              ? warehouseOptions
+              : []
+          }
+          onSearchChange={
+            handleSearchChange
+          }
+          onTypeChange={
+            handleTypeChange
+          }
+          onStatusChange={
+            handleStatusChange
+          }
+          onWarehouseChange={
+            handleWarehouseChange
+          }
+        />
+
+        <LocationTable
+          locations={locations}
+          loading={loading}
+          canManage={isAdmin}
+          onEdit={handleEdit}
+          onActivate={
+            handleActivate
+          }
+          onDeactivate={
+            handleDeactivate
+          }
         />
       </Card>
 
-      <Modal
-        title={
-          editingLocation
-            ? 'Edit Location'
-            : 'Add Location'
-        }
-        open={modalOpen}
-        onCancel={closeModal}
-        onOk={handleSubmit}
-        okText={
-          editingLocation
-            ? 'Update'
-            : 'Create'
-        }
-        destroyOnClose
-      >
-        <Form
-          form={form}
-          layout="vertical"
-          style={{
-            marginTop: 24,
-          }}
-        >
-          <Form.Item
-            label="Location Name"
-            name="name"
-            rules={[
-              {
-                required: true,
-                message:
-                  'Please enter the location name',
-              },
-            ]}
-          >
-            <Input placeholder="e.g. Shelf A-01" />
-          </Form.Item>
-
-          <Form.Item
-            label="Location Code"
-            name="code"
-            rules={[
-              {
-                required: true,
-                message:
-                  'Please enter the location code',
-              },
-            ]}
-          >
-            <Input placeholder="e.g. A-01" />
-          </Form.Item>
-
-          <Form.Item
-            label="Warehouse"
-            name="warehouse"
-            rules={[
-              {
-                required: true,
-                message:
-                  'Please select a warehouse',
-              },
-            ]}
-          >
-            <Select
-              placeholder="Select warehouse"
-              options={warehouseOptions.map(
-                (warehouse) => ({
-                  label: warehouse,
-                  value: warehouse,
-                }),
-              )}
-            />
-          </Form.Item>
-
-          <Form.Item
-            label="Description"
-            name="description"
-          >
-            <Input.TextArea
-              rows={3}
-              placeholder="Enter location description"
-            />
-          </Form.Item>
-
-          <Form.Item
-            label="Status"
-            name="status"
-            rules={[
-              {
-                required: true,
-                message:
-                  'Please select the status',
-              },
-            ]}
-          >
-            <Select
-              options={[
-                {
-                  label: 'Active',
-                  value: 'Active',
-                },
-                {
-                  label: 'Inactive',
-                  value: 'Inactive',
-                },
-              ]}
-            />
-          </Form.Item>
-        </Form>
-      </Modal>
-    </div>
+      {isAdmin && (
+        <LocationFormModal
+          open={modalOpen}
+          loading={submitting}
+          location={
+            editingLocation
+          }
+          warehouseOptions={
+            warehouseOptions
+          }
+          onCancel={
+            handleModalCancel
+          }
+          onSubmit={handleSubmit}
+        />
+      )}
+    </Space>
   )
 }

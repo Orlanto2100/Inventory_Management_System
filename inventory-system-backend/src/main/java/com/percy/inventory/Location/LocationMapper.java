@@ -21,14 +21,20 @@ public class LocationMapper {
         );
     }
 
-    public LocationResponse toResponse(Location location) {
+    public LocationResponse toResponse(
+            Location location
+    ) {
+        Warehouse warehouse =
+                location.getWarehouse();
+
         return new LocationResponse(
                 location.getLocationId(),
                 location.getName(),
                 location.getCode(),
                 location.getType(),
                 location.getStatus(),
-                location.getWarehouse().getWarehouseId()
+                warehouse.getWarehouseId(),
+                warehouse.getName()
         );
     }
 

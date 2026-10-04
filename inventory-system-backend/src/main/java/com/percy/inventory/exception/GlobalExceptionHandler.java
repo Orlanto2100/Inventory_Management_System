@@ -3,6 +3,7 @@ package com.percy.inventory.exception;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -21,6 +22,7 @@ public class GlobalExceptionHandler {
                 HttpStatus.NOT_FOUND
         );
 
+        problem.setTitle("Resource Not Found");
         problem.setDetail(ex.getMessage());
 
         return problem;
@@ -34,6 +36,7 @@ public class GlobalExceptionHandler {
                 HttpStatus.CONFLICT
         );
 
+        problem.setTitle("Duplicate Resource");
         problem.setDetail(ex.getMessage());
 
         return problem;
@@ -47,6 +50,21 @@ public class GlobalExceptionHandler {
                 HttpStatus.BAD_REQUEST
         );
 
+        problem.setTitle("Invalid Password");
+        problem.setDetail(ex.getMessage());
+
+        return problem;
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ProblemDetail handleAccessDenied(
+            AccessDeniedException ex) {
+
+        ProblemDetail problem = ProblemDetail.forStatus(
+                HttpStatus.FORBIDDEN
+        );
+
+        problem.setTitle("Access Denied");
         problem.setDetail(ex.getMessage());
 
         return problem;

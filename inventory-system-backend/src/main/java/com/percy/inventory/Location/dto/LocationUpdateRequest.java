@@ -4,6 +4,7 @@ import com.percy.inventory.Location.LocationType;
 import jakarta.validation.constraints.Size;
 
 public record LocationUpdateRequest(
+
         @Size(max = 100)
         String name,
 
@@ -11,4 +12,6 @@ public record LocationUpdateRequest(
         String code,
 
         LocationType type
-) {}
+
+) {
+}
