@@ -74,7 +74,6 @@ public class PurchaseRequestService {
                 new PurchaseRequest(
                         generateRequestNo(),
                         requester,
-                        request.department(),
                         LocalDate.now(),
                         request.requiredDate(),
                         request.reason(),
@@ -204,7 +203,6 @@ public class PurchaseRequestService {
                 );
 
         purchaseRequest.update(
-                request.department(),
                 request.requiredDate(),
                 request.reason(),
                 request.notes(),

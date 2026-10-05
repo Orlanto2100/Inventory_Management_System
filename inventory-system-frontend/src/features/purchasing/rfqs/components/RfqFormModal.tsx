@@ -39,10 +39,9 @@ type SelectOption = {
 type RfqFormModalProps = {
   open: boolean
   onClose: () => void
-  onSubmit?: (
+  onSubmit: (
     values: RfqFormValues,
-    action: 'draft' | 'send',
-  ) => void
+  ) => Promise<void>
   submitting?: boolean
   vendors: SelectOption[]
   products: SelectOption[]
@@ -59,24 +58,33 @@ function RfqFormModal({
   const [form] =
     Form.useForm<RfqFormValues>()
 
-  const handleSubmit = async (
-    action: 'draft' | 'send',
-  ) => {
+  const handleSubmit = async () => {
     try {
       const values =
         await form.validateFields()
 
-      onSubmit?.(values, action)
+      await onSubmit(values)
+
+      form.resetFields()
     } catch {
       // Ant Design displays validation errors.
     }
+  }
+
+  const handleClose = () => {
+    if (submitting) {
+      return
+    }
+
+    form.resetFields()
+    onClose()
   }
 
   return (
     <Modal
       title="Create Request for Quotation"
       open={open}
-      onCancel={onClose}
+      onCancel={handleClose}
       width={720}
       destroyOnHidden
       footer={
@@ -85,29 +93,18 @@ function RfqFormModal({
           gap={8}
         >
           <Button
-            onClick={onClose}
+            onClick={handleClose}
             disabled={submitting}
           >
             Cancel
           </Button>
 
           <Button
-            loading={submitting}
-            onClick={() =>
-              handleSubmit('draft')
-            }
-          >
-            Save Draft
-          </Button>
-
-          <Button
             type="primary"
             loading={submitting}
-            onClick={() =>
-              handleSubmit('send')
-            }
+            onClick={handleSubmit}
           >
-            Send RFQ
+            Create RFQ
           </Button>
         </Flex>
       }
@@ -126,6 +123,10 @@ function RfqFormModal({
           ],
         }}
       >
+        {/* ==========================================
+            Title
+            ========================================== */}
+
         <Form.Item
           label="Title"
           name="title"
@@ -142,6 +143,10 @@ function RfqFormModal({
           />
         </Form.Item>
 
+        {/* ==========================================
+            Response Deadline
+            ========================================== */}
+
         <Form.Item
           label="Response Deadline"
           name="responseDeadline"
@@ -154,10 +159,16 @@ function RfqFormModal({
           ]}
         >
           <DatePicker
-            style={{ width: '100%' }}
+            style={{
+              width: '100%',
+            }}
             format="DD MMM YYYY"
           />
         </Form.Item>
+
+        {/* ==========================================
+            Vendors
+            ========================================== */}
 
         <Form.Item
           label="Vendors"
@@ -179,6 +190,10 @@ function RfqFormModal({
           />
         </Form.Item>
 
+        {/* ==========================================
+            Description
+            ========================================== */}
+
         <Form.Item
           label="Description"
           name="description"
@@ -188,6 +203,10 @@ function RfqFormModal({
             placeholder="Describe the requirements..."
           />
         </Form.Item>
+
+        {/* ==========================================
+            Requested Items
+            ========================================== */}
 
         <div
           style={{
@@ -319,6 +338,10 @@ function RfqFormModal({
           )}
         </Form.List>
 
+        {/* ==========================================
+            Email
+            ========================================== */}
+
         <Form.Item
           label="Email Subject"
           name="emailSubject"
@@ -337,7 +360,7 @@ function RfqFormModal({
         >
           <Input.TextArea
             rows={7}
-            placeholder="Write the message sent to vendors..."
+            placeholder="Write the message that will be sent to vendors..."
           />
         </Form.Item>
       </Form>

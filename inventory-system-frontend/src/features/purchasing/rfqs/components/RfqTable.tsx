@@ -16,10 +16,9 @@ import type {
   RfqStatus,
 } from '../../../../api/rfqApi'
 
-type RfqAction =
+export type RfqAction =
   | 'view'
   | 'edit'
-  | 'send'
   | 'delete'
   | 'reminder'
   | 'close'
@@ -95,11 +94,6 @@ function getActionItems(
           key: 'edit',
           label: 'Edit',
           ...action('edit'),
-        },
-        {
-          key: 'send',
-          label: 'Send RFQ',
-          ...action('send'),
         },
         {
           key: 'delete',

@@ -27,25 +27,25 @@ public interface LocationRepository
                         l.updated_at
                     FROM locations l
                     WHERE (
-                        CAST(:search AS TEXT) IS NULL
+                        :search IS NULL
                         OR l.code ILIKE CONCAT(
                             '%',
-                            CAST(:search AS TEXT),
+                            :search,
                             '%'
                         )
                         OR l.name ILIKE CONCAT(
                             '%',
-                            CAST(:search AS TEXT),
+                            :search,
                             '%'
                         )
                     )
                     AND (
-                        CAST(:type AS TEXT) IS NULL
-                        OR l.type = CAST(:type AS TEXT)
+                        :type IS NULL
+                        OR l.type = :type
                     )
                     AND (
-                        CAST(:status AS TEXT) IS NULL
-                        OR l.status = CAST(:status AS TEXT)
+                        :status IS NULL
+                        OR l.status = :status
                     )
                     AND (
                         :warehouseId IS NULL
@@ -56,25 +56,25 @@ public interface LocationRepository
                     SELECT COUNT(*)
                     FROM locations l
                     WHERE (
-                        CAST(:search AS TEXT) IS NULL
+                        :search IS NULL
                         OR l.code ILIKE CONCAT(
                             '%',
-                            CAST(:search AS TEXT),
+                            :search,
                             '%'
                         )
                         OR l.name ILIKE CONCAT(
                             '%',
-                            CAST(:search AS TEXT),
+                            :search,
                             '%'
                         )
                     )
                     AND (
-                        CAST(:type AS TEXT) IS NULL
-                        OR l.type = CAST(:type AS TEXT)
+                        :type IS NULL
+                        OR l.type = :type
                     )
                     AND (
-                        CAST(:status AS TEXT) IS NULL
-                        OR l.status = CAST(:status AS TEXT)
+                        :status IS NULL
+                        OR l.status = :status
                     )
                     AND (
                         :warehouseId IS NULL
@@ -85,8 +85,8 @@ public interface LocationRepository
     )
     Page<Location> search(
             @Param("search") String search,
-            @Param("type") LocationType type,
-            @Param("status") LocationStatus status,
+            @Param("type") String type,
+            @Param("status") String status,
             @Param("warehouseId") Long warehouseId,
             Pageable pageable
     );

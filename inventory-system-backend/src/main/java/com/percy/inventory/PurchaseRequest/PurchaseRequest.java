@@ -34,9 +34,6 @@ public class PurchaseRequest extends BaseEntity {
     @JoinColumn(name = "requester_id", nullable = false)
     private Users requester;
 
-    @Column(nullable = false, length = 100)
-    private String department;
-
     @Column(name = "request_date", nullable = false)
     private LocalDate requestDate;
 
@@ -71,7 +68,6 @@ public class PurchaseRequest extends BaseEntity {
     public PurchaseRequest(
             String requestNo,
             Users requester,
-            String department,
             LocalDate requestDate,
             LocalDate requiredDate,
             String reason,
@@ -81,7 +77,6 @@ public class PurchaseRequest extends BaseEntity {
     ) {
         this.requestNo = requestNo;
         this.requester = requester;
-        this.department = department;
         this.requestDate = requestDate;
         this.requiredDate = requiredDate;
         this.reason = reason;
@@ -92,14 +87,12 @@ public class PurchaseRequest extends BaseEntity {
     }
 
     public void update(
-            String department,
             LocalDate requiredDate,
             String reason,
             String notes,
             Warehouse warehouse,
             Location location
     ) {
-        this.department = department;
         this.requiredDate = requiredDate;
         this.reason = reason;
         this.notes = notes;

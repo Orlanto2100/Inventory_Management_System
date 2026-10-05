@@ -6,16 +6,22 @@ import {
   Tag,
 } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
-import type { PurchaseRequestResponse } from '../../../../api/purchaseRequestApi'
+
+import type {
+  PurchaseRequestResponse,
+  PurchaseRequestStatus,
+} from '../../../../api/purchaseRequestApi'
 
 interface PurchaseRequestDetailsProps {
   open: boolean
-  purchaseRequest: PurchaseRequestResponse | null
+  purchaseRequest:
+    | PurchaseRequestResponse
+    | null
   onClose: () => void
 }
 
 const statusColors: Record<
-  PurchaseRequestResponse['status'],
+  PurchaseRequestStatus,
   string
 > = {
   DRAFT: 'default',
@@ -24,12 +30,6 @@ const statusColors: Record<
   REJECTED: 'red',
   PROCESSING: 'purple',
   COMPLETED: 'green',
-}
-
-const formatStatus = (
-  status: PurchaseRequestResponse['status']
-) => {
-  return status.replaceAll('_', ' ')
 }
 
 export default function PurchaseRequestDetails({
@@ -41,20 +41,23 @@ export default function PurchaseRequestDetails({
     return null
   }
 
-  const columns: ColumnsType<
+  const lineColumns: ColumnsType<
     PurchaseRequestResponse['lines'][number]
   > = [
     {
       title: 'Product',
-      dataIndex: 'productName',
-      key: 'productName',
-      render: (value) => value ?? '-',
+      key: 'product',
+      render: (_, record) =>
+        record.productName ??
+        '-',
     },
     {
       title: 'Description',
       dataIndex: 'description',
       key: 'description',
-      render: (value) => value ?? '-',
+      render: (
+        value: string | null
+      ) => value ?? '-',
     },
     {
       title: 'Quantity',
@@ -70,41 +73,54 @@ export default function PurchaseRequestDetails({
       title: 'Required Date',
       dataIndex: 'requiredDate',
       key: 'requiredDate',
-      render: (value) => value ?? '-',
+      render: (
+        value: string | null
+      ) => value ?? '-',
     },
     {
       title: 'Notes',
       dataIndex: 'notes',
       key: 'notes',
-      render: (value) => value ?? '-',
+      render: (
+        value: string | null
+      ) => value ?? '-',
     },
   ]
 
   return (
     <Modal
-      title={`Purchase Request ${purchaseRequest.requestNo}`}
       open={open}
+      title={`Purchase Request ${purchaseRequest.requestNo}`}
       onCancel={onClose}
       footer={null}
-      width={1100}
+      width={900}
     >
       <Descriptions
         bordered
-        column={{
-          xs: 1,
-          sm: 2,
-        }}
+        column={2}
+        size="small"
       >
         <Descriptions.Item label="Request No.">
           {purchaseRequest.requestNo}
         </Descriptions.Item>
 
-        <Descriptions.Item label="Requester">
-          {purchaseRequest.requesterName}
+        <Descriptions.Item label="Status">
+          <Tag
+            color={
+              statusColors[
+                purchaseRequest.status
+              ]
+            }
+          >
+            {purchaseRequest.status.replaceAll(
+              '_',
+              ' '
+            )}
+          </Tag>
         </Descriptions.Item>
 
-        <Descriptions.Item label="Department">
-          {purchaseRequest.department}
+        <Descriptions.Item label="Requester">
+          {purchaseRequest.requesterName}
         </Descriptions.Item>
 
         <Descriptions.Item label="Request Date">
@@ -115,22 +131,14 @@ export default function PurchaseRequestDetails({
           {purchaseRequest.requiredDate}
         </Descriptions.Item>
 
-        <Descriptions.Item label="Status">
-          <Tag
-            color={
-              statusColors[purchaseRequest.status]
-            }
-          >
-            {formatStatus(purchaseRequest.status)}
-          </Tag>
-        </Descriptions.Item>
-
         <Descriptions.Item label="Warehouse">
-          {purchaseRequest.warehouseName ?? '-'}
+          {purchaseRequest.warehouseName ??
+            '-'}
         </Descriptions.Item>
 
         <Descriptions.Item label="Location">
-          {purchaseRequest.locationName ?? '-'}
+          {purchaseRequest.locationName ??
+            '-'}
         </Descriptions.Item>
 
         <Descriptions.Item
@@ -144,20 +152,25 @@ export default function PurchaseRequestDetails({
           label="Notes"
           span={2}
         >
-          {purchaseRequest.notes ?? '-'}
+          {purchaseRequest.notes ??
+            '-'}
         </Descriptions.Item>
       </Descriptions>
 
       <Divider>
-        Request Lines
+        Purchase Items
       </Divider>
 
       <Table
         rowKey="id"
-        columns={columns}
-        dataSource={purchaseRequest.lines}
+        columns={lineColumns}
+        dataSource={
+          purchaseRequest.lines
+        }
         pagination={false}
-        scroll={{ x: 900 }}
+        scroll={{
+          x: 800,
+        }}
       />
     </Modal>
   )

@@ -2,7 +2,11 @@ package com.percy.inventory.Rfqs;
 
 import com.percy.inventory.Products.Product;
 import com.percy.inventory.Products.ProductRepository;
-import com.percy.inventory.Rfqs.dto.*;
+import com.percy.inventory.Rfqs.dto.CreateRfqRequest;
+import com.percy.inventory.Rfqs.dto.RfqEmailResponse;
+import com.percy.inventory.Rfqs.dto.RfqLineRequest;
+import com.percy.inventory.Rfqs.dto.RfqResponse;
+import com.percy.inventory.Rfqs.dto.UpdateRfqRequest;
 import com.percy.inventory.Vendor.Vendor;
 import com.percy.inventory.Vendor.VendorRepository;
 import com.percy.inventory.exception.ResourceNotFoundException;
@@ -37,6 +41,17 @@ public class RfqService {
             );
         }
 
+        for (Vendor vendor : vendors) {
+            if (vendor.getEmail() == null ||
+                    vendor.getEmail().isBlank()) {
+
+                throw new IllegalArgumentException(
+                        "Vendor '" + vendor.getName() +
+                                "' does not have an email address"
+                );
+            }
+        }
+
         RequestForQuotation rfq = rfqMapper.toEntity(
                 request,
                 generateRfqNumber(),
@@ -65,10 +80,46 @@ public class RfqService {
             rfq.addLine(line);
         }
 
+        /*
+         * Save the RFQ first.
+         *
+         * This guarantees that the RFQ exists in the database
+         * even if email sending fails.
+         */
         RequestForQuotation savedRfq =
                 rfqRepository.save(rfq);
 
-        return rfqMapper.toResponse(savedRfq);
+        /*
+         * Generate the email automatically from the RFQ.
+         */
+        RfqEmailResponse email =
+                generateEmail(savedRfq);
+
+        /*
+         * Send the same RFQ to each selected vendor.
+         *
+         * If any email fails, the exception is propagated and
+         * the RFQ remains DRAFT because the status is changed
+         * only after all emails are successfully sent.
+         */
+        for (Vendor vendor : savedRfq.getVendors()) {
+
+            emailService.sendEmail(
+                    vendor.getEmail(),
+                    email.emailSubject(),
+                    email.emailMessage()
+            );
+        }
+
+        /*
+         * All vendor emails were successfully sent.
+         */
+        savedRfq.changeStatus(RfqStatus.SENT);
+
+        RequestForQuotation sentRfq =
+                rfqRepository.save(savedRfq);
+
+        return rfqMapper.toResponse(sentRfq);
     }
 
     public RfqResponse getRfqById(Long id) {
@@ -180,10 +231,19 @@ public class RfqService {
                                 )
                         );
 
-        String subject =
-                "Request for Quotation - " + rfq.getRfqNumber();
+        return generateEmail(rfq);
+    }
 
-        StringBuilder message = new StringBuilder();
+    private RfqEmailResponse generateEmail(
+            RequestForQuotation rfq
+    ) {
+
+        String subject =
+                "Request for Quotation - " +
+                        rfq.getRfqNumber();
+
+        StringBuilder message =
+                new StringBuilder();
 
         message.append("Dear Vendor,\n\n");
 
@@ -205,10 +265,14 @@ public class RfqService {
 
         message.append("Requested Items:\n\n");
 
-        for (RequestForQuotationLine line : rfq.getLines()) {
+        for (RequestForQuotationLine line :
+                rfq.getLines()) {
 
             message.append("- ")
-                    .append(line.getProduct().getProductName())
+                    .append(
+                            line.getProduct()
+                                    .getProductName()
+                    )
                     .append(" — Quantity: ")
                     .append(line.getQuantity());
 
@@ -225,13 +289,21 @@ public class RfqService {
         if (rfq.getDescription() != null &&
                 !rfq.getDescription().isBlank()) {
 
-            message.append("\nAdditional Information:\n")
-                    .append(rfq.getDescription())
-                    .append("\n");
+            message.append(
+                    "\nAdditional Information:\n"
+            );
+
+            message.append(
+                    rfq.getDescription()
+            );
+
+            message.append("\n");
         }
 
         message.append("\n")
-                .append("Please provide your quotation before the response deadline.\n\n");
+                .append(
+                        "Please provide your quotation before the response deadline.\n\n"
+                );
 
         message.append("Thank you.");
 
@@ -239,33 +311,6 @@ public class RfqService {
                 subject,
                 message.toString()
         );
-    }
-
-    public void sendRfq(
-            Long rfqId,
-            RfqEmailRequest request
-    ) {
-
-        RequestForQuotation rfq =
-                rfqRepository.findById(rfqId)
-                        .orElseThrow(() ->
-                                new ResourceNotFoundException(
-                                        "RFQ not found"
-                                )
-                        );
-
-        for (Vendor vendor : rfq.getVendors()) {
-
-            emailService.sendEmail(
-                    vendor.getEmail(),
-                    request.emailSubject(),
-                    request.emailMessage()
-            );
-        }
-
-        rfq.changeStatus(RfqStatus.SENT);
-
-        rfqRepository.save(rfq);
     }
 
     public void closeRfq(Long rfqId) {

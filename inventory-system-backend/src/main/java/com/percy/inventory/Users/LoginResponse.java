@@ -7,6 +7,8 @@ public record LoginResponse(
         String token,
         String username,
         AccountType accountType,
-        Role role
+        Role role,
+        Long warehouseId,
+        String warehouseName
 ) {
 }

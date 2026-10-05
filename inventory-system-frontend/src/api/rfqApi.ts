@@ -30,8 +30,6 @@ export type CreateRfqRequest = {
   description?: string
   vendorIds: number[]
   items: RfqItemRequest[]
-  emailSubject?: string
-  emailMessage?: string
 }
 
 export type UpdateRfqRequest = {
@@ -40,13 +38,6 @@ export type UpdateRfqRequest = {
   description?: string
   vendorIds: number[]
   items: RfqItemRequest[]
-  emailSubject?: string
-  emailMessage?: string
-}
-
-export type RfqEmailRequest = {
-  subject: string
-  message: string
 }
 
 export type RfqEmailResponse = {
@@ -75,22 +66,35 @@ export type RfqQueryParams = {
 export function getRfqs(
   params: RfqQueryParams = {},
 ) {
-  const searchParams = new URLSearchParams()
+  const searchParams =
+    new URLSearchParams()
 
   if (params.page !== undefined) {
-    searchParams.set('page', String(params.page))
+    searchParams.set(
+      'page',
+      String(params.page),
+    )
   }
 
   if (params.size !== undefined) {
-    searchParams.set('size', String(params.size))
+    searchParams.set(
+      'size',
+      String(params.size),
+    )
   }
 
   if (params.search) {
-    searchParams.set('search', params.search)
+    searchParams.set(
+      'search',
+      params.search,
+    )
   }
 
   if (params.status) {
-    searchParams.set('status', params.status)
+    searchParams.set(
+      'status',
+      params.status,
+    )
   }
 
   if (params.vendorId !== undefined) {
@@ -108,10 +112,14 @@ export function getRfqs(
   }
 
   if (params.sort) {
-    searchParams.set('sort', params.sort)
+    searchParams.set(
+      'sort',
+      params.sort,
+    )
   }
 
-  const query = searchParams.toString()
+  const query =
+    searchParams.toString()
 
   return apiRequest<RfqPageResponse>(
     `/rfqs${query ? `?${query}` : ''}`,
@@ -127,10 +135,13 @@ export function getRfqById(id: number) {
 export function createRfq(
   request: CreateRfqRequest,
 ) {
-  return apiRequest<RfqResponse>('/rfqs', {
-    method: 'POST',
-    body: JSON.stringify(request),
-  })
+  return apiRequest<RfqResponse>(
+    '/rfqs',
+    {
+      method: 'POST',
+      body: JSON.stringify(request),
+    },
+  )
 }
 
 export function updateRfq(
@@ -146,29 +157,21 @@ export function updateRfq(
   )
 }
 
-export function getRfqEmailPreview(id: number) {
+export function getRfqEmailPreview(
+  id: number,
+) {
   return apiRequest<RfqEmailResponse>(
     `/rfqs/${id}/email-preview`,
   )
 }
 
-export function sendRfq(
-  id: number,
-  request: RfqEmailRequest,
-) {
+export function deleteRfq(id: number) {
   return apiRequest<void>(
-    `/rfqs/${id}/send`,
+    `/rfqs/${id}`,
     {
-      method: 'POST',
-      body: JSON.stringify(request),
+      method: 'DELETE',
     },
   )
-}
-
-export function deleteRfq(id: number) {
-  return apiRequest<void>(`/rfqs/${id}`, {
-    method: 'DELETE',
-  })
 }
 
 export function closeRfq(id: number) {

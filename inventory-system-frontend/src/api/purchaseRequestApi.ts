@@ -18,7 +18,6 @@ export interface PurchaseRequestLineRequest {
 }
 
 export interface CreatePurchaseRequestRequest {
-  department: string
   requiredDate: string
   reason: string
   notes?: string
@@ -28,7 +27,6 @@ export interface CreatePurchaseRequestRequest {
 }
 
 export interface UpdatePurchaseRequestRequest {
-  department: string
   requiredDate: string
   reason: string
   notes?: string
@@ -53,7 +51,6 @@ export interface PurchaseRequestResponse {
   requestNo: string
   requesterId: number
   requesterName: string
-  department: string
   requestDate: string
   requiredDate: string
   reason: string
@@ -66,95 +63,86 @@ export interface PurchaseRequestResponse {
   lines: PurchaseRequestLineResponse[]
 }
 
-const BASE_URL = '/purchase-requests'
-
 export const purchaseRequestApi = {
-  getAll(): Promise<PurchaseRequestResponse[]> {
-    return apiRequest(BASE_URL)
+  getAll() {
+    return apiRequest<PurchaseRequestResponse[]>(
+      '/purchase-requests',
+    )
   },
 
-  getById(
-    id: number
-  ): Promise<PurchaseRequestResponse> {
-    return apiRequest(
-      `${BASE_URL}/${id}`
+  getById(id: number) {
+    return apiRequest<PurchaseRequestResponse>(
+      `/purchase-requests/${id}`,
     )
   },
 
   create(
-    request: CreatePurchaseRequestRequest
-  ): Promise<PurchaseRequestResponse> {
-    return apiRequest(BASE_URL, {
-      method: 'POST',
-      body: JSON.stringify(request),
-    })
+    request: CreatePurchaseRequestRequest,
+  ) {
+    return apiRequest<PurchaseRequestResponse>(
+      '/purchase-requests',
+      {
+        method: 'POST',
+        body: JSON.stringify(request),
+      },
+    )
   },
 
   update(
     id: number,
-    request: UpdatePurchaseRequestRequest
-  ): Promise<PurchaseRequestResponse> {
-    return apiRequest(
-      `${BASE_URL}/${id}`,
+    request: UpdatePurchaseRequestRequest,
+  ) {
+    return apiRequest<PurchaseRequestResponse>(
+      `/purchase-requests/${id}`,
       {
         method: 'PUT',
         body: JSON.stringify(request),
-      }
+      },
     )
   },
 
-  submit(
-    id: number
-  ): Promise<PurchaseRequestResponse> {
-    return apiRequest(
-      `${BASE_URL}/${id}/submit`,
+  submit(id: number) {
+    return apiRequest<PurchaseRequestResponse>(
+      `/purchase-requests/${id}/submit`,
       {
         method: 'POST',
-      }
+      },
     )
   },
 
-  approve(
-    id: number
-  ): Promise<PurchaseRequestResponse> {
-    return apiRequest(
-      `${BASE_URL}/${id}/approve`,
+  approve(id: number) {
+    return apiRequest<PurchaseRequestResponse>(
+      `/purchase-requests/${id}/approve`,
       {
         method: 'POST',
-      }
+      },
     )
   },
 
-  reject(
-    id: number
-  ): Promise<PurchaseRequestResponse> {
-    return apiRequest(
-      `${BASE_URL}/${id}/reject`,
+  reject(id: number) {
+    return apiRequest<PurchaseRequestResponse>(
+      `/purchase-requests/${id}/reject`,
       {
         method: 'POST',
-      }
+      },
     )
   },
 
-  process(
-    id: number
-  ): Promise<PurchaseRequestResponse> {
-    return apiRequest(
-      `${BASE_URL}/${id}/process`,
+  process(id: number) {
+    return apiRequest<PurchaseRequestResponse>(
+      `/purchase-requests/${id}/process`,
       {
         method: 'POST',
-      }
+      },
     )
   },
 
-  complete(
-    id: number
-  ): Promise<PurchaseRequestResponse> {
-    return apiRequest(
-      `${BASE_URL}/${id}/complete`,
+  complete(id: number) {
+    return apiRequest<PurchaseRequestResponse>(
+      `/purchase-requests/${id}/complete`,
       {
         method: 'POST',
-      }
+      },
     )
   },
 }

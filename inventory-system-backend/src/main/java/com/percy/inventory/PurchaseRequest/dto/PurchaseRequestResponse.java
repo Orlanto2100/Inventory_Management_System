@@ -15,8 +15,6 @@ public record PurchaseRequestResponse(
 
         String requesterName,
 
-        String department,
-
         LocalDate requestDate,
 
         LocalDate requiredDate,

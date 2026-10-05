@@ -110,11 +110,21 @@ public class LocationService {
         String normalizedSearch =
                 normalizeSearch(search);
 
+        String typeValue =
+                type == null
+                        ? null
+                        : type.name();
+
+        String statusValue =
+                status == null
+                        ? null
+                        : status.name();
+
         return locationRepository
                 .search(
                         normalizedSearch,
-                        type,
-                        status,
+                        typeValue,
+                        statusValue,
                         effectiveWarehouseId,
                         pageable
                 )
@@ -263,6 +273,11 @@ public class LocationService {
         }
 
         if (currentUser.getRole()
+                == Role.PURCHASING_STAFF) {
+            return;
+        }
+
+        if (currentUser.getRole()
                 != Role.WAREHOUSE_STAFF) {
 
             throw new AccessDeniedException(
@@ -301,6 +316,12 @@ public class LocationService {
 
         if (currentUser.getRole()
                 == Role.ADMIN) {
+
+            return requestedWarehouseId;
+        }
+
+        if (currentUser.getRole()
+                == Role.PURCHASING_STAFF) {
 
             return requestedWarehouseId;
         }

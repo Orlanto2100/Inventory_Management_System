@@ -7,7 +7,6 @@ import {
 import { useEffect } from 'react'
 
 import type {
-  AccountType,
   CreateUserRequest,
   Role,
 } from '../types/user'
@@ -33,18 +32,11 @@ export default function UserFormModal({
   const [form] =
     Form.useForm<CreateUserRequest>()
 
-  const accountType =
-    Form.useWatch(
-      'accountType',
-      form,
-    )
-
   const role =
     Form.useWatch(
       'role',
       form,
     )
-
 
   // ==================================================
   // Warehouses
@@ -55,7 +47,6 @@ export default function UserFormModal({
     loading: warehousesLoading,
   } = useWarehouses()
 
-
   // ==================================================
   // Reset
   // ==================================================
@@ -65,7 +56,6 @@ export default function UserFormModal({
       form.resetFields()
     }
   }, [open, form])
-
 
   // ==================================================
   // Submit
@@ -78,11 +68,14 @@ export default function UserFormModal({
     await onSubmit({
       ...values,
 
-      role:
-        values.accountType === 'COMPANY'
-          ? values.role
-          : null,
+      // This form is ONLY for company accounts.
+      accountType: 'COMPANY',
 
+      // Company accounts require a role.
+      role: values.role ?? null,
+
+      // Only warehouse staff can have
+      // an assigned warehouse.
       warehouseId:
         values.role === 'WAREHOUSE_STAFF'
           ? values.warehouseId
@@ -92,17 +85,15 @@ export default function UserFormModal({
     form.resetFields()
   }
 
-
   return (
     <Modal
-      title="Create User"
+      title="Create Company User"
       open={open}
       onCancel={onCancel}
       onOk={() => form.submit()}
       confirmLoading={loading}
       destroyOnHidden
     >
-
       <Form
         form={form}
         layout="vertical"
@@ -132,7 +123,6 @@ export default function UserFormModal({
           <Input />
         </Form.Item>
 
-
         {/* ==========================================
             Password
             ========================================== */}
@@ -155,7 +145,6 @@ export default function UserFormModal({
         >
           <Input.Password />
         </Form.Item>
-
 
         {/* ==========================================
             Full Name
@@ -180,7 +169,6 @@ export default function UserFormModal({
           <Input />
         </Form.Item>
 
-
         {/* ==========================================
             Email
             ========================================== */}
@@ -199,123 +187,97 @@ export default function UserFormModal({
           <Input />
         </Form.Item>
 
-
         {/* ==========================================
             Account Type
             ========================================== */}
 
         <Form.Item
           label="Account Type"
-          name="accountType"
-          rules={[
-            {
-              required: true,
-              message:
-                'Account type is required',
-            },
-          ]}
         >
-          <Select<AccountType>
-            options={[
-              {
-                label: 'Company',
-                value: 'COMPANY',
-              },
-              {
-                label: 'Vendor',
-                value: 'VENDOR',
-              },
-              {
-                label: 'Customer',
-                value: 'CUSTOMER',
-              },
-            ]}
+          <Input
+            value="Company"
+            disabled
           />
         </Form.Item>
-
 
         {/* ==========================================
             Role
             ========================================== */}
 
-        {accountType === 'COMPANY' && (
-          <Form.Item
-            label="Role"
-            name="role"
-            rules={[
+        <Form.Item
+          label="Role"
+          name="role"
+          rules={[
+            {
+              required: true,
+              message:
+                'Role is required for company users',
+            },
+          ]}
+        >
+          <Select<Role>
+            placeholder="Select company role"
+            options={[
               {
-                required: true,
-                message:
-                  'Role is required for company users',
+                label: 'Admin',
+                value: 'ADMIN',
+              },
+              {
+                label: 'Warehouse Staff',
+                value: 'WAREHOUSE_STAFF',
+              },
+              {
+                label: 'Purchasing Staff',
+                value: 'PURCHASING_STAFF',
+              },
+              {
+                label: 'Sales Staff',
+                value: 'SALES_STAFF',
               },
             ]}
-          >
-            <Select<Role>
-              options={[
-                {
-                  label: 'Admin',
-                  value: 'ADMIN',
-                },
-                {
-                  label: 'Warehouse Staff',
-                  value: 'WAREHOUSE_STAFF',
-                },
-                {
-                  label: 'Purchasing Staff',
-                  value: 'PURCHASING_STAFF',
-                },
-                {
-                  label: 'Sales Staff',
-                  value: 'SALES_STAFF',
-                },
-              ]}
-            />
-          </Form.Item>
-        )}
-
+          />
+        </Form.Item>
 
         {/* ==========================================
             Assigned Warehouse
             Warehouse Staff only
             ========================================== */}
 
-        {accountType === 'COMPANY' &&
-          role === 'WAREHOUSE_STAFF' && (
-            <Form.Item
-              label="Assigned Warehouse"
-              name="warehouseId"
-              rules={[
-                {
-                  required: true,
-                  message:
-                    'Warehouse is required for warehouse staff',
-                },
-              ]}
-            >
-              <Select<number>
-                placeholder="Select warehouse"
-                loading={
-                  warehousesLoading
-                }
+        {role === 'WAREHOUSE_STAFF' && (
+          <Form.Item
+            label="Assigned Warehouse"
+            name="warehouseId"
+            rules={[
+              {
+                required: true,
+                message:
+                  'Warehouse is required for warehouse staff',
+              },
+            ]}
+          >
+            <Select<number>
+              placeholder="Select warehouse"
+              loading={
+                warehousesLoading
+              }
+              options={warehouses
+                .filter(
+                  (warehouse) =>
+                    warehouse.status ===
+                    'ACTIVE',
+                )
+                .map(
+                  (warehouse) => ({
+                    label:
+                      `${warehouse.code} - ${warehouse.name}`,
 
-                options={warehouses
-                  .filter(
-                    (warehouse) =>
-                      warehouse.status ===
-                      'ACTIVE',
-                  )
-                  .map(
-                    (warehouse) => ({
-                      label:
-                        `${warehouse.code} - ${warehouse.name}`,
-
-                      value:
-                        warehouse.warehouseId,
-                    }),
-                  )}
-              />
-            </Form.Item>
-          )}
+                    value:
+                      warehouse.warehouseId,
+                  }),
+                )}
+            />
+          </Form.Item>
+        )}
 
       </Form>
     </Modal>

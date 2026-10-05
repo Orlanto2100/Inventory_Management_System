@@ -25,27 +25,58 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
 
-  const handleLogin = async (values: LoginFormValues) => {
+  const handleLogin = async (
+    values: LoginFormValues
+  ) => {
     try {
       setLoading(true)
 
       const response = await login(values)
 
-      localStorage.setItem('token', response.token)
-      localStorage.setItem('username', response.username)
-      localStorage.setItem('accountType', response.accountType)
+      localStorage.setItem(
+        'token',
+        response.token
+      )
+
+      localStorage.setItem(
+        'username',
+        response.username
+      )
+
+      localStorage.setItem(
+        'accountType',
+        response.accountType
+      )
 
       if (response.role) {
-        localStorage.setItem('role', response.role)
+        localStorage.setItem(
+          'role',
+          response.role
+        )
       } else {
         localStorage.removeItem('role')
       }
 
-      message.success('Login successful.')
+      if (response.warehouseId != null) {
+        localStorage.setItem(
+          'warehouseId',
+          String(response.warehouseId)
+        )
+      } else {
+        localStorage.removeItem(
+          'warehouseId'
+        )
+      }
+
+      message.success(
+        'Login successful.'
+      )
 
       navigate('/')
     } catch {
-      message.error('Invalid username or password.')
+      message.error(
+        'Invalid username or password.'
+      )
     } finally {
       setLoading(false)
     }
@@ -105,7 +136,8 @@ export default function LoginPage() {
             rules={[
               {
                 required: true,
-                message: 'Please enter your username',
+                message:
+                  'Please enter your username',
               },
             ]}
           >
@@ -122,7 +154,8 @@ export default function LoginPage() {
             rules={[
               {
                 required: true,
-                message: 'Please enter your password',
+                message:
+                  'Please enter your password',
               },
             ]}
           >
@@ -133,7 +166,11 @@ export default function LoginPage() {
             />
           </Form.Item>
 
-          <Form.Item style={{ marginBottom: 0 }}>
+          <Form.Item
+            style={{
+              marginBottom: 0,
+            }}
+          >
             <Button
               type="primary"
               htmlType="submit"

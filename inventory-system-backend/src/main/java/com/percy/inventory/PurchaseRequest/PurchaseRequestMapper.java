@@ -26,7 +26,6 @@ public class PurchaseRequestMapper {
                 purchaseRequest.getRequester().getUserId(),
                 purchaseRequest.getRequester().getUsername(),
 
-                purchaseRequest.getDepartment(),
                 purchaseRequest.getRequestDate(),
                 purchaseRequest.getRequiredDate(),
                 purchaseRequest.getReason(),

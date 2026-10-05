@@ -11,9 +11,6 @@ import java.util.List;
 
 public record UpdatePurchaseRequestRequest(
 
-        @NotBlank
-        String department,
-
         @NotNull
         @FutureOrPresent
         LocalDate requiredDate,

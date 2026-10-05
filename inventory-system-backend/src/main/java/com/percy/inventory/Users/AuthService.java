@@ -25,15 +25,29 @@ public class AuthService {
                         )
                 );
 
-        Users user = (Users) authentication.getPrincipal();
+        Users user =
+                (Users) authentication.getPrincipal();
 
-        String token = jwtService.generateToken(user);
+        String token =
+                jwtService.generateToken(user);
+
+        Long warehouseId =
+                user.getWarehouse() != null
+                        ? user.getWarehouse().getWarehouseId()
+                        : null;
+
+        String warehouseName =
+                user.getWarehouse() != null
+                        ? user.getWarehouse().getName()
+                        : null;
 
         return new LoginResponse(
                 token,
                 user.getUsername(),
                 user.getAccountType(),
-                user.getRole()
+                user.getRole(),
+                warehouseId,
+                warehouseName
         );
     }
 }

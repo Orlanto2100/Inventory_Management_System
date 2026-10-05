@@ -6,20 +6,25 @@ import {
   deleteRfq,
   getRfqs,
   updateRfq,
-  sendRfq,
   closeRfq,
   type CreateRfqRequest,
-  type RfqEmailRequest,
   type RfqResponse,
   type UpdateRfqRequest,
 } from '../../../../api/rfqApi'
 
 export function useRfqs() {
-  const [rfqs, setRfqs] = useState<RfqResponse[]>([])
-  const [loading, setLoading] = useState(false)
-  const [submitting, setSubmitting] = useState(false)
+  const [rfqs, setRfqs] =
+    useState<RfqResponse[]>([])
+
+  const [loading, setLoading] =
+    useState(false)
+
+  const [submitting, setSubmitting] =
+    useState(false)
+
   const [deletingId, setDeletingId] =
     useState<number | null>(null)
+
   const [error, setError] =
     useState<string | null>(null)
 
@@ -53,15 +58,16 @@ export function useRfqs() {
     try {
       setSubmitting(true)
 
-      const newRfq = await createRfq(values)
+      const newRfq =
+        await createRfq(values)
 
       setRfqs((currentRfqs) => [
-        ...currentRfqs,
         newRfq,
+        ...currentRfqs,
       ])
 
       message.success(
-        'RFQ created successfully.',
+        'RFQ created and sent successfully.',
       )
 
       return true
@@ -69,7 +75,7 @@ export function useRfqs() {
       const errorMessage =
         error instanceof Error
           ? error.message
-          : 'Failed to create RFQ.'
+          : 'Failed to create and send RFQ.'
 
       message.error(errorMessage)
 
@@ -86,17 +92,19 @@ export function useRfqs() {
     try {
       setSubmitting(true)
 
-      const updatedRfq = await updateRfq(
-        rfqId,
-        values,
-      )
+      const updatedRfq =
+        await updateRfq(
+          rfqId,
+          values,
+        )
 
-      setRfqs((currentRfqs) =>
-        currentRfqs.map((rfq) =>
-          rfq.rfqId === rfqId
-            ? updatedRfq
-            : rfq,
-        ),
+      setRfqs(
+        (currentRfqs) =>
+          currentRfqs.map((rfq) =>
+            rfq.rfqId === rfqId
+              ? updatedRfq
+              : rfq,
+          ),
       )
 
       message.success(
@@ -126,10 +134,12 @@ export function useRfqs() {
 
       await deleteRfq(rfqId)
 
-      setRfqs((currentRfqs) =>
-        currentRfqs.filter(
-          (rfq) => rfq.rfqId !== rfqId,
-        ),
+      setRfqs(
+        (currentRfqs) =>
+          currentRfqs.filter(
+            (rfq) =>
+              rfq.rfqId !== rfqId,
+          ),
       )
 
       message.success(
@@ -151,42 +161,6 @@ export function useRfqs() {
     }
   }
 
-  const send = async (
-    rfqId: number,
-    request: RfqEmailRequest,
-  ): Promise<boolean> => {
-    try {
-      setSubmitting(true)
-
-      await sendRfq(rfqId, request)
-
-      setRfqs((currentRfqs) =>
-        currentRfqs.map((rfq) =>
-          rfq.rfqId === rfqId
-            ? { ...rfq, status: 'SENT' }
-            : rfq,
-        ),
-      )
-
-      message.success(
-        'RFQ sent successfully.',
-      )
-
-      return true
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : 'Failed to send RFQ.'
-
-      message.error(errorMessage)
-
-      return false
-    } finally {
-      setSubmitting(false)
-    }
-  }
-
   const close = async (
     rfqId: number,
   ): Promise<boolean> => {
@@ -195,12 +169,16 @@ export function useRfqs() {
 
       await closeRfq(rfqId)
 
-      setRfqs((currentRfqs) =>
-        currentRfqs.map((rfq) =>
-          rfq.rfqId === rfqId
-            ? { ...rfq, status: 'CLOSED' }
-            : rfq,
-        ),
+      setRfqs(
+        (currentRfqs) =>
+          currentRfqs.map((rfq) =>
+            rfq.rfqId === rfqId
+              ? {
+                  ...rfq,
+                  status: 'CLOSED',
+                }
+              : rfq,
+          ),
       )
 
       message.success(
@@ -232,7 +210,6 @@ export function useRfqs() {
     create,
     update,
     remove,
-    send,
     close,
   }
 }

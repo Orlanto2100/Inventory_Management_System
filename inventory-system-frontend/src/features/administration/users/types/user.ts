@@ -29,7 +29,10 @@ export interface CreateUserRequest {
   password: string
   fullName: string
   email?: string | null
+
   accountType: AccountType
+
   role?: Role | null
+
   warehouseId?: number | null
 }

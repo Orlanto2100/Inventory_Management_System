@@ -1,6 +1,9 @@
 package com.percy.inventory.Rfqs;
 
-import com.percy.inventory.Rfqs.dto.*;
+import com.percy.inventory.Rfqs.dto.CreateRfqRequest;
+import com.percy.inventory.Rfqs.dto.RfqEmailResponse;
+import com.percy.inventory.Rfqs.dto.RfqResponse;
+import com.percy.inventory.Rfqs.dto.UpdateRfqRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -22,7 +25,8 @@ public class RfqController {
     public ResponseEntity<RfqResponse> createRfq(
             @Valid @RequestBody CreateRfqRequest request
     ) {
-        RfqResponse response = rfqService.createRfq(request);
+        RfqResponse response =
+                rfqService.createRfq(request);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -40,10 +44,18 @@ public class RfqController {
 
     @GetMapping
     public ResponseEntity<Page<RfqResponse>> listRfqs(
-            @RequestParam(required = false) String search,
-            @RequestParam(required = false) RfqStatus status,
-            @RequestParam(required = false) Long vendorId,
-            @RequestParam(required = false) LocalDate responseDeadline,
+            @RequestParam(required = false)
+            String search,
+
+            @RequestParam(required = false)
+            RfqStatus status,
+
+            @RequestParam(required = false)
+            Long vendorId,
+
+            @RequestParam(required = false)
+            LocalDate responseDeadline,
+
             Pageable pageable
     ) {
         return ResponseEntity.ok(
@@ -76,12 +88,11 @@ public class RfqController {
         );
     }
 
-    @PostMapping("/{id}/send")
-    public ResponseEntity<Void> sendRfq(
-            @PathVariable Long id,
-            @Valid @RequestBody RfqEmailRequest request
+    @PostMapping("/{id}/close")
+    public ResponseEntity<Void> closeRfq(
+            @PathVariable Long id
     ) {
-        rfqService.sendRfq(id, request);
+        rfqService.closeRfq(id);
 
         return ResponseEntity.noContent().build();
     }
@@ -91,15 +102,6 @@ public class RfqController {
             @PathVariable Long id
     ) {
         rfqService.deleteRfq(id);
-
-        return ResponseEntity.noContent().build();
-    }
-
-    @PostMapping("/{id}/close")
-    public ResponseEntity<Void> closeRfq(
-            @PathVariable Long id
-    ) {
-        rfqService.closeRfq(id);
 
         return ResponseEntity.noContent().build();
     }

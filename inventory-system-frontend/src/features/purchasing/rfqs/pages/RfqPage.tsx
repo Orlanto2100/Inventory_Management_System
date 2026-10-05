@@ -11,8 +11,15 @@ import { PlusOutlined } from '@ant-design/icons'
 import RfqFilters, {
   type RfqFilterValues,
 } from '../components/RfqFilters'
-import RfqTable from '../components/RfqTable'
-import RfqFormModal from '../components/RfqFormModal'
+
+import RfqTable, {
+  type RfqAction,
+} from '../components/RfqTable'
+
+import RfqFormModal, {
+  type RfqFormValues,
+} from '../components/RfqFormModal'
+
 import { useRfqs } from '../hooks/useRfqs'
 
 import { useVendors } from '../../vendors/hooks/useVendors'
@@ -30,6 +37,8 @@ function RfqPage() {
   const {
     rfqs,
     loading,
+    submitting,
+    create,
   } = useRfqs()
 
   const {
@@ -52,13 +61,87 @@ function RfqPage() {
   )
 
   const productOptions = useMemo(
-  () =>
-    products.map((product) => ({
-      label: product.productName,
-      value: product.productId,
-    })),
-  [products],
-)
+    () =>
+      products.map((product) => ({
+        label: product.productName,
+        value: product.productId,
+      })),
+    [products],
+  )
+
+  const handleCreate = async (
+    values: RfqFormValues,
+  ) => {
+    const success = await create({
+      title: values.title,
+
+      responseDeadline:
+        values.responseDeadline!
+          .endOf('day')
+          .format(
+            'YYYY-MM-DDTHH:mm:ss',
+          ),
+
+      description:
+        values.description,
+
+      vendorIds:
+        values.vendorIds,
+
+      items:
+        values.items.map(
+          (item) => ({
+            productId:
+              item.productId,
+            quantity:
+              item.quantity,
+            notes:
+              item.notes,
+          }),
+        ),
+    })
+
+    if (success) {
+      setModalOpen(false)
+    }
+  }
+
+  const handleAction = async (
+    action: RfqAction,
+  ) => {
+    switch (action) {
+      case 'view':
+        // TODO
+        break
+
+      case 'edit':
+        // TODO
+        break
+
+      case 'delete':
+        // TODO
+        break
+
+      case 'reminder':
+        // TODO
+        break
+
+      case 'close':
+        // TODO
+        break
+
+      case 'compare':
+        // TODO
+        break
+
+      case 'purchase-order':
+        // TODO
+        break
+
+      default:
+        break
+    }
+  }
 
   return (
     <div>
@@ -74,7 +157,8 @@ function RfqPage() {
         </Title>
 
         <Text type="secondary">
-          Create and manage requests sent to vendors.
+          Create and manage requests sent
+          to vendors.
         </Text>
       </div>
 
@@ -122,6 +206,7 @@ function RfqPage() {
         <RfqTable
           rfqs={rfqs}
           loading={loading}
+          onAction={handleAction}
         />
       </Card>
 
@@ -130,9 +215,11 @@ function RfqPage() {
         onClose={() =>
           setModalOpen(false)
         }
+        onSubmit={handleCreate}
         vendors={vendorOptions}
         products={productOptions}
         submitting={
+          submitting ||
           vendorsLoading ||
           productsLoading
         }
