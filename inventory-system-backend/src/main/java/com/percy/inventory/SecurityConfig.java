@@ -1,7 +1,7 @@
 package com.percy.inventory;
 
-import com.percy.inventory.Users.CustomUserDetailsService;
-import com.percy.inventory.Users.JwtAuthenticationFilter;
+import com.percy.inventory.Users.auth.CustomUserDetailsService;
+import com.percy.inventory.Users.auth.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

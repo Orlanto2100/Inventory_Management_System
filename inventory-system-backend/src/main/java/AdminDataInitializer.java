@@ -1,6 +1,6 @@
 package com.percy.inventory;
 
-import com.percy.inventory.Users.AccountType;
+import com.percy.inventory.Users.auth.AccountType;
 import com.percy.inventory.Users.Role;
 import com.percy.inventory.Users.Users;
 import com.percy.inventory.Users.UsersRepository;

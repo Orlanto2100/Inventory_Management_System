@@ -1,5 +1,6 @@
 package com.percy.inventory.Users;
 
+import com.percy.inventory.Users.auth.AccountType;
 import com.percy.inventory.Users.dto.CreateUserRequest;
 import com.percy.inventory.Users.dto.UpdateUserProfileRequest;
 import com.percy.inventory.Users.dto.UserResponse;

@@ -4,6 +4,7 @@ import com.percy.inventory.BaseEntity;
 import com.percy.inventory.PurchaseOrder.PurchaseOrder;
 import com.percy.inventory.SalesOrder.SalesOrder;
 import com.percy.inventory.StockMovement.StockMovement;
+import com.percy.inventory.Users.auth.AccountType;
 import com.percy.inventory.Warehouse.Warehouse;
 import jakarta.persistence.*;
 import lombok.Getter;
